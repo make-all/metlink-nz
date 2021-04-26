@@ -69,7 +69,7 @@ async def async_setup_platform(
 ) -> None:
     """Set up the sensor platform."""
     session = async_get_clientsession(hass)
-    metlink = Metlink(session, api_key=config(CONF_API_KEY))
+    metlink = Metlink(session, config[CONF_API_KEY])
     sensors = [MetlinkSensor(metlink, stop) for stop in config[CONF_STOPS]]
     async_add_entities(sensors, update_before_add=True)
 
