@@ -1,0 +1,9 @@
+{
+    "codeowners": ["@make-all"],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://code.jasonrumney.net/w/metlink/",
+    "domain": "metlink_nz",
+    "name": "Metlink NZ Transport",
+    "requirements": ["aiohttp~=3.7.4"]
+}
