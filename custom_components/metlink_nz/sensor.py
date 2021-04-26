@@ -145,7 +145,7 @@ class MetlinkSensor(Entity):
                 )
 
                 if num == 1:
-                    self.state = time
+                    self._state = time
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
