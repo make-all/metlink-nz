@@ -1,13 +1,11 @@
 """Interface to the metlink web service."""
 
-import aiohttp
-import asyncio
 import logging
 
 from homeassistant.const import CONTENT_TYPE_JSON
 
 BASE_URL = "https://api.opendata.metlink.org.nz/v1"
-PREDICTIONS_URL = BASE_URL + "/stop_predictions"
+PREDICTIONS_URL = BASE_URL + "/stop-predictions"
 STOP_PARAM = "stop_id"
 APIKEY_HEADER = "X-Api-Key"
 
@@ -29,8 +27,9 @@ class Metlink(object):
         """Get arrival/departure predictions for the specified stop."""
         headers = {"Accept": CONTENT_TYPE_JSON, APIKEY_HEADER: self._key}
         query = {STOP_PARAM: stop_id}
+        _LOGGER.debug(f"Metlink request for {stop_id}")
         async with self._session.get(
-            PREDICTIONS_URL, params=query, headers=headers
+            PREDICTIONS_URL, params=query, headers=headers,
         ) as r:
-            r.raise_for_status()
+            await r.raise_for_status()
             return await r.json()
