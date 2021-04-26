@@ -31,5 +31,5 @@ class Metlink(object):
         async with self._session.get(
             PREDICTIONS_URL, params=query, headers=headers,
         ) as r:
-            await r.raise_for_status()
+            r.raise_for_status()
             return await r.json()
