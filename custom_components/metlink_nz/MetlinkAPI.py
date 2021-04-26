@@ -11,8 +11,6 @@ PREDICTIONS_URL = BASE_URL + "/stop_predictions"
 STOP_PARAM = "stop_id"
 APIKEY_HEADER = "X-Api-Key"
 
-from .const import PREDICTIONS_URL, STOP_PARAM, APIKEY_HEADER
-
 _LOGGER = logging.getLogger(__name__)
 
 
