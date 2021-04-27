@@ -156,7 +156,9 @@ class MetlinkSensor(Entity):
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
-                    _LOGGER.info(f"{self._name}: departs at {self._state}")
+                    fname = f"{departure[ATTR_SERVICE]} {dest}"
+                    self.attrs["friendly_name"] = fname
+                    _LOGGER.info(f"{name}: {fname} departs at {time}")
                     suffix = ""
                 else:
                     suffix = f"_{num}"
