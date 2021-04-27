@@ -25,6 +25,7 @@ from .const import (
     ATTR_NAME,
     ATTR_OPERATOR,
     ATTR_SERVICE,
+    ATTR_SERVICE_NAME,
     ATTR_STATUS,
     ATTR_STOP,
     CONF_DEST,
@@ -161,10 +162,10 @@ class MetlinkSensor(Entity):
                     self._state = time
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
-                    self._friendly_name = f"{departure[ATTR_SERVICE]} {departure[ATTR_DESTINATION][ATTR_NAME]}"
                     )
-                suffix = ""
-                if self.num_departures > 1:
+                    self._friendly_name = f"{departure[ATTR_SERVICE]} {departure[ATTR_DESTINATION][ATTR_NAME]}"
+                    suffix = ""
+                else:
                     suffix = f"_{num}"
                 _LOGGER.debug(f"Parsing {suffix} attributes from {departure}")
                 _LOGGER.debug(
