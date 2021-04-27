@@ -152,6 +152,8 @@ class MetlinkSensor(Entity):
                 suffix = ""
                 if self.num_departures > 1:
                     suffix = f"_{num}"
+                _LOGGER.debug(f"Parsing {suffix} attributes from {departure}")
+                _LOGGER.debug(f"Resolved time as {time} from {departure[ATTR_DEPARTURE][ATTR_AIMED]} and {departure[ATTR_DEPARTURE][ATTR_EXPECTED]")
                 self.attrs[ATTR_DEPARTURE + suffix] = time
                 self.attrs[ATTR_SERVICE + suffix] = departure[ATTR_SERVICE]
                 self.attrs[ATTR_NAME + suffix] = departure[ATTR_NAME]
