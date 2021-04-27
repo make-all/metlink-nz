@@ -158,7 +158,7 @@ class MetlinkSensor(Entity):
                     )
                     fname = f"{departure[ATTR_SERVICE]} {dest}"
                     self.attrs["friendly_name"] = fname
-                    _LOGGER.info(f"{name}: {fname} departs at {time}")
+                    _LOGGER.info(f"{self._name}: {fname} departs at {time}")
                     suffix = ""
                 else:
                     suffix = f"_{num}"
