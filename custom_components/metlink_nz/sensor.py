@@ -1,6 +1,7 @@
 """Sensor platform for Metlink departure info."""
 import logging
 from datetime import timedelta
+from math import floor
 from typing import Any, Callable, Dict, Optional
 from aiohttp import ClientError
 import voluptuous as vol
@@ -152,7 +153,7 @@ class MetlinkSensor(Entity):
                     # First record is the next departure, so use that
                     # to set the state (departure time) and friendly name
                     # (service id and detination name)
-                    self._state = as_timestamp(time)
+                    self._state = floor(as_timestamp(time))
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
