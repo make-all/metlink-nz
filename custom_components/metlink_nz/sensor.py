@@ -1,6 +1,6 @@
 """Sensor platform for Metlink departure info."""
 import logging
-from datetime import timedelta, datetime
+from datetime import timedelta
 from typing import Any, Callable, Dict, Optional
 from aiohttp import ClientError
 import voluptuous as vol
@@ -15,7 +15,7 @@ from homeassistant.helpers.typing import (
     DiscoveryInfoType,
     HomeAssistantType,
 )
-from homeassistant.util.dt import parse_datetime
+from homeassistant.util.dt import parse_datetime, utc_from_timestamp
 
 from .const import (
     ATTR_AIMED,
@@ -152,9 +152,7 @@ class MetlinkSensor(Entity):
                     # First record is the next departure, so use that
                     # to set the state (departure time) and friendly name
                     # (service id and detination name)
-                    self._state = datetime.utcfromtimestamp(
-                        time.timestamp()
-                    ).isoformat()
+                    self._state = utc_from_timestamp(time.timestamp()).isoformat()
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
