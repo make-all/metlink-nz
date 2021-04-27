@@ -15,6 +15,7 @@ from homeassistant.helpers.typing import (
     DiscoveryInfoType,
     HomeAssistantType,
 )
+from homeassistant.util.dt import parse_datetime
 
 from .const import (
     ATTR_AIMED,
@@ -101,8 +102,10 @@ class MetlinkSensor(Entity):
     def friendly_name(self) -> str:
         """Return the friendly name for the UI."""
         if self._friendly_name is None:
+            _LOGGER.debug("Friendly name not yet set, using name")
             return self._name
 
+        _LOGGER.debug("Returning friendly name {self._friendly_name}")
         return self._friendly_name
 
     @property
@@ -138,22 +141,23 @@ class MetlinkSensor(Entity):
             num = 0
 
             for departure in data[ATTR_DEPARTURES]:
+                dest = departure[ATTR_DESTINATION].get(ATTR_NAME)
                 if self.route_filter is not None:
                     if departure[ATTR_SERVICE] != self.route_filter:
                         continue
                 if self.dest_filter is not None:
                     if (
                         departure[ATTR_DESTINATION][ATTR_STOP] != self.dest_filter
-                        and departure[ATTR_DESTINATION][ATTR_NAME] != self.dest_filter
+                        and dest != self.dest_filter
                     ):
                         continue
                 num = num + 1
                 if num > self.num_departures:
                     break
-
                 time = departure[ATTR_DEPARTURE].get(ATTR_EXPECTED)
                 if time is None:
                     time = departure[ATTR_DEPARTURE].get(ATTR_AIMED)
+                time = parse_datetime(time)
 
                 if num == 1:
                     # First record is the next departure, so use that
@@ -163,7 +167,10 @@ class MetlinkSensor(Entity):
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
-                    self._friendly_name = f"{departure[ATTR_SERVICE]} {departure[ATTR_DESTINATION][ATTR_NAME]}"
+                    self._friendly_name = f"{departure[ATTR_SERVICE]} {dest}"
+                    _LOGGER.info(
+                        f"{self._name}: {self._friendly_name} departs at {self._state}"
+                    )
                     suffix = ""
                 else:
                     suffix = f"_{num}"
@@ -178,9 +185,7 @@ class MetlinkSensor(Entity):
                 if status is None:
                     status = DEFAULT_STATUS
                 self.attrs[ATTR_STATUS + suffix] = status
-                self.attrs[ATTR_DESTINATION + suffix] = departure[ATTR_DESTINATION][
-                    ATTR_NAME
-                ]
+                self.attrs[ATTR_DESTINATION + suffix] = dest
                 self.attrs[ATTR_STOP + suffix] = departure[ATTR_DESTINATION][ATTR_STOP]
             self._available = True
         except (ClientError):
