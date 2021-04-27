@@ -86,6 +86,7 @@ class MetlinkSensor(Entity):
         self.num_departures = stop.get(CONF_NUM_DEPARTURES, 1)
         self.attrs: Dict[str, Any] = {ATTR_STOP: self.stop_id}
         self._name = "metlink_" + self.stop_id
+        self._friendly_name = None
         self._state = None
         self._available = True
         self._icon = DEFAULT_ICON
@@ -94,6 +95,14 @@ class MetlinkSensor(Entity):
     def name(self) -> str:
         """Return the name of the entity."""
         return self._name
+
+    @property
+    def friendly_name(self) -> str:
+        """Return the friendly name for the UI."""
+        if self._friendly_name is None:
+            return self._name
+
+        return self._friendly_name
 
     @property
     def unique_id(self) -> str:
@@ -126,6 +135,7 @@ class MetlinkSensor(Entity):
         try:
             data = await self.metlink.get_predictions(self.stop_id)
             num = 0
+
             for departure in data[ATTR_DEPARTURES]:
                 if self.route_filter is not None:
                     if departure[ATTR_SERVICE] != self.route_filter:
@@ -140,14 +150,18 @@ class MetlinkSensor(Entity):
                 if num > self.num_departures:
                     break
 
-                time = departure[ATTR_DEPARTURE].get(
-                    ATTR_EXPECTED, departure[ATTR_DEPARTURE][ATTR_AIMED]
-                )
+                time = departure[ATTR_DEPARTURE].get(ATTR_EXPECTED)
+                if time is None:
+                    time = departure[ATTR_DEPARTURE].get(ATTR_AIMED)
 
                 if num == 1:
+                    # First record is the next departure, so use that
+                    # to set the state (departure time) and friendly name
+                    # (service id and detination name)
                     self._state = time
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
+                    self._friendly_name = f"{departure[ATTR_SERVICE]} {departure[ATTR_DESTINATION][ATTR_NAME]}"
                     )
                 suffix = ""
                 if self.num_departures > 1:
@@ -158,10 +172,11 @@ class MetlinkSensor(Entity):
                 )
                 self.attrs[ATTR_DEPARTURE + suffix] = time
                 self.attrs[ATTR_SERVICE + suffix] = departure[ATTR_SERVICE]
-                self.attrs[ATTR_NAME + suffix] = departure[ATTR_NAME]
-                self.attrs[ATTR_STATUS + suffix] = departure.get(
-                    ATTR_STATUS, DEFAULT_STATUS
-                )
+                self.attrs[ATTR_SERVICE_NAME + suffix] = departure[ATTR_NAME]
+                status = departure.get(ATTR_STATUS)
+                if status is None:
+                    status = DEFAULT_STATUS
+                self.attrs[ATTR_STATUS + suffix] = status
                 self.attrs[ATTR_DESTINATION + suffix] = departure[ATTR_DESTINATION][
                     ATTR_NAME
                 ]
