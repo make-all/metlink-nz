@@ -114,7 +114,7 @@ class MetlinkSensor(Entity):
 
     @property
     def state(self):
-        return (self._state - dt_util.now()).total_seconds() // 60
+        return int((self._state - dt_util.now()).total_seconds() // 60)
 
     @property
     def unit_of_measurement(self):
