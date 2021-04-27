@@ -15,7 +15,7 @@ from homeassistant.helpers.typing import (
     DiscoveryInfoType,
     HomeAssistantType,
 )
-from homeassistant.util.dt import parse_datetime
+from homeassistant.util.dt import parse_datetime, as_timestamp
 
 from .const import (
     ATTR_AIMED,
@@ -87,8 +87,7 @@ class MetlinkSensor(Entity):
         self.dest_filter = stop.get(CONF_DEST, None)
         self.num_departures = stop.get(CONF_NUM_DEPARTURES, 1)
         self.attrs: Dict[str, Any] = {ATTR_STOP: self.stop_id}
-        self._name = "metlink_" + self.stop_id
-        self._friendly_name = None
+        self._name = "Metlink " + self.stop_id
         self._state = None
         self._available = True
         self._icon = DEFAULT_ICON
@@ -97,16 +96,6 @@ class MetlinkSensor(Entity):
     def name(self) -> str:
         """Return the name of the entity."""
         return self._name
-
-    @property
-    def friendly_name(self) -> str:
-        """Return the friendly name for the UI."""
-        if self._friendly_name is None:
-            _LOGGER.debug("Friendly name not yet set, using name")
-            return self._name
-
-        _LOGGER.debug("Returning friendly name {self._friendly_name}")
-        return self._friendly_name
 
     @property
     def unique_id(self) -> str:
@@ -163,14 +152,11 @@ class MetlinkSensor(Entity):
                     # First record is the next departure, so use that
                     # to set the state (departure time) and friendly name
                     # (service id and detination name)
-                    self._state = time
+                    self._state = as_timestamp(time)
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
-                    self._friendly_name = f"{departure[ATTR_SERVICE]} {dest}"
-                    _LOGGER.info(
-                        f"{self._name}: {self._friendly_name} departs at {self._state}"
-                    )
+                    _LOGGER.info(f"{self._name}: departs at {self._state}")
                     suffix = ""
                 else:
                     suffix = f"_{num}"
