@@ -15,6 +15,7 @@ from homeassistant.helpers.typing import (
     DiscoveryInfoType,
     HomeAssistantType,
 )
+import homeassistant.util.dt as dt_util
 
 from .const import (
     ATTR_AIMED,
@@ -113,7 +114,7 @@ class MetlinkSensor(Entity):
 
     @property
     def state(self):
-        return (self._state - datetime.now()).total_seconds() // 60
+        return (self._state - dt_util.now()).total_seconds() // 60
 
     @property
     def unit_of_measurement(self):
@@ -150,7 +151,7 @@ class MetlinkSensor(Entity):
                     # First record is the next departure, so use that
                     # to set the state (departure time) and friendly name
                     # (service id and detination name)
-                    self._state = time
+                    self._state = dt_util.parse_datetime(time)
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
