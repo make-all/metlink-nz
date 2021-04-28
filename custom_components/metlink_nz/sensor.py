@@ -1,6 +1,6 @@
 """Sensor platform for Metlink departure info."""
 import logging
-from datetime import timedelta, datetime
+from datetime import timedelta
 from typing import Any, Callable, Dict, Optional
 from aiohttp import ClientError
 import voluptuous as vol
