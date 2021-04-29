@@ -1,5 +1,20 @@
 """Sensor platform for Metlink departure info."""
+# Copyright 2021 Jason Rumney
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import logging
+import re
 from datetime import timedelta
 from typing import Any, Callable, Dict, Optional
 from aiohttp import ClientError
@@ -21,7 +36,9 @@ from .const import (
     ATTR_AIMED,
     ATTR_DEPARTURE,
     ATTR_DEPARTURES,
+    ATTR_DESCRIPTION,
     ATTR_DESTINATION,
+    ATTR_DESTINATION_ID,
     ATTR_EXPECTED,
     ATTR_NAME,
     ATTR_OPERATOR,
@@ -76,6 +93,10 @@ async def async_setup_platform(
     async_add_entities(sensors, update_before_add=True)
 
 
+def slug(text: str):
+    return "_".join(re.split(r'["#$%&+,/:;=?@\[\\\]^`{|}~\'\s]+', text))
+
+
 class MetlinkSensor(Entity):
     """Representation of a Metlink Stop sensor."""
 
@@ -88,6 +109,12 @@ class MetlinkSensor(Entity):
         self.num_departures = stop.get(CONF_NUM_DEPARTURES, 1)
         self.attrs: Dict[str, Any] = {ATTR_STOP: self.stop_id}
         self._name = "Metlink " + self.stop_id
+        uid = "metlink_" + self.stop_id
+        if self.route_filter is not None:
+            uid = uid + "_r" + slug(self.route_filter)
+        if self.dest_filter is not None:
+            uid = uid + "_d" + slug(self.dest_filter)
+        self.uid = uid
         self._state = None
         self._available = True
         self._icon = DEFAULT_ICON
@@ -100,7 +127,7 @@ class MetlinkSensor(Entity):
     @property
     def unique_id(self) -> str:
         """Return the unique_id of the sensor."""
-        return self._name
+        return self.uid
 
     @property
     def available(self) -> bool:
@@ -127,6 +154,7 @@ class MetlinkSensor(Entity):
     async def async_update(self):
         try:
             data = await self.metlink.get_predictions(self.stop_id)
+            _LOGGER.debug(f"Response from Metlink API is {data}")
             num = 0
 
             for departure in data[ATTR_DEPARTURES]:
@@ -156,7 +184,7 @@ class MetlinkSensor(Entity):
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
                     fname = f"{departure[ATTR_SERVICE]} {dest}"
-                    self.attrs["friendly_name"] = fname
+                    self.attrs[ATTR_DESCRIPTION] = fname
                     _LOGGER.info(f"{self._name}: {fname} departs at {time}")
                     suffix = ""
                 else:
@@ -173,8 +201,13 @@ class MetlinkSensor(Entity):
                     status = DEFAULT_STATUS
                 self.attrs[ATTR_STATUS + suffix] = status
                 self.attrs[ATTR_DESTINATION + suffix] = dest
-                self.attrs[ATTR_STOP + suffix] = departure[ATTR_DESTINATION][ATTR_STOP]
+                self.attrs[ATTR_DESTINATION_ID + suffix] = departure[ATTR_DESTINATION][
+                    ATTR_STOP
+                ]
             self._available = True
         except (ClientError):
             self._available = False
             _LOGGER.exception("Error retrieving data from Metlink API")
+        except (TypeError):
+            self._available = False
+            _LOGGER.exception("Error parsing response from Metlink API")

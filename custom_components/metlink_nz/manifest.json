@@ -4,7 +4,7 @@
     "dependencies": [],
     "documentation": "https://code.jasonrumney.net/w/metlink/",
     "domain": "metlink_nz",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "name": "Metlink NZ Transport",
-    "requirements": ["aiohttp~=3.7.4"]
+    "requirements": []
 }
