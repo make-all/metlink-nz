@@ -6,8 +6,8 @@ Greater Wellington public transport.
 
 ## Status
 
-Currently this integration is a work in progress, so needs some manual
-installation steps.
+Currently this integration is a work in progress, but basically works with
+the new (2021) Metlink API.
 
 The format and naming of attributes is subject to change in future
 versions, as I review other transport integrations and adapt to any
@@ -24,8 +24,11 @@ https://github.com/make-all/metlink-nz to HACS, and installing from there.
 If you prefer to instal manually, copy `custom_components/metlink_nz` to your
 installation's `config/custom_components` directory.
 
-The configuration currently needs to be manually added to
-`configs/configuration.yaml` and should be something like:
+API keys can be obtained by registering on the
+[Metlink Developer Portal](https://opendata.metlink.org).
+
+If you prefer to configure using yaml instead of the UI, add something like
+the following to your `config/configuration.yaml`:
 
 ```
 sensor:
@@ -39,9 +42,6 @@ sensor:
 	    destination: 3451
         num_departures: 3
 ```
-
-API keys can be obtained by registering on the
-[Metlink Developer Portal](https://opendata.metlink.org).
 
 `stop_id` for Train and Cable Car stops is a 4 character alphabetic
 code, and for bus and ferry stops, is a 4 digit numeric code.

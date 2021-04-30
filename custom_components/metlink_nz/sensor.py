@@ -20,9 +20,9 @@ from typing import Any, Callable, Dict, Optional
 from aiohttp import ClientError
 import voluptuous as vol
 
+from homeassistant import config_entries, core
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import CONF_API_KEY, TIME_MINUTES
-from homeassistant.core import HomeAssistant
+from homeassistant.const import DOMAIN, CONF_API_KEY, TIME_MINUTES
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
@@ -80,8 +80,21 @@ OPERATOR_ICONS = {"RAIL": "mdi:train", "EBYW": "mdi:ferry", "WCCL": "mdi:gondola
 DEFAULT_STATUS = "sched"
 
 
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: config_entries.ConfigEntry,
+    async_add_entities,
+):
+    """Setup sensors from a config entry created in the integrations UI."""
+    config = hass.data[DOMAIN][config_entry.entry_id]
+    session = async_get_clientsession(hass)
+    metlink = Metlink(session, config[CONF_API_KEY])
+    sensors = [MetlinkSensor(metlink, stop) for stop in config[CONF_STOPS]]
+    async_add_entities(sensors, update_before_add=True)
+
+
 async def async_setup_platform(
-    hass: HomeAssistant,
+    hass: core.HomeAssistant,
     config: ConfigType,
     async_add_entities: Callable,
     discovery_info: Optional[DiscoveryInfoType] = None,

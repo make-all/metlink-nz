@@ -1,0 +1,27 @@
+{
+    "config": {
+	"error": {
+	    "auth": "The api key provided is not valid."
+	},
+	"step": {
+	    "user": {
+		"data": {
+		    "api_key": "Metlink API key"
+		},
+		"description": "Enter your Metlink API key.",
+		"title": "Authentication"
+	    },
+	    "stop": {
+		"data": {
+		    "stop_id": "4 digit or letter stop id.",
+		    "route": "(Optional) Route filter.",
+		    "destination": "(Optional} Final destination filter.",
+		    "num_departures": "Number of departures to track. (Default: 1)",
+		    "add_another": "Add another stop?"
+		},
+		"description": "Add a bus or train stop. Check the box to add another.",
+		"title": "Add Metlink Stop"
+	    }
+	}
+    }
+}
