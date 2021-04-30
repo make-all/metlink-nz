@@ -1,11 +1,11 @@
 {
     "codeowners": ["@make-all"],
-    "config_flow": true,
+    "config_flow": false,
     "dependencies": [],
     "documentation": "https://code.jasonrumney.net/w/metlink/",
     "domain": "metlink_nz",
     "iot_class": "cloud_polling",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "name": "Metlink NZ Transport",
     "requirements": []
 }
