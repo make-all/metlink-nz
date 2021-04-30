@@ -120,12 +120,14 @@ class MetlinkSensor(Entity):
         self.route_filter = stop.get(CONF_ROUTE, None)
         self.dest_filter = stop.get(CONF_DEST, None)
         self.num_departures = stop.get(CONF_NUM_DEPARTURES, 1)
+        if self.num_departures < 1:
+            self.num_departures = 1
         self.attrs: Dict[str, Any] = {ATTR_STOP: self.stop_id}
         self._name = "Metlink " + self.stop_id
         uid = "metlink_" + self.stop_id
-        if self.route_filter is not None:
+        if self.route_filter not in (None, ""):
             uid = uid + "_r" + slug(self.route_filter)
-        if self.dest_filter is not None:
+        if self.dest_filter not in (None, ""):
             uid = uid + "_d" + slug(self.dest_filter)
         self.uid = uid
         self._state = None
@@ -172,10 +174,10 @@ class MetlinkSensor(Entity):
 
             for departure in data[ATTR_DEPARTURES]:
                 dest = departure[ATTR_DESTINATION].get(ATTR_NAME)
-                if self.route_filter is not None:
+                if self.route_filter not in (None, ""):
                     if departure[ATTR_SERVICE] != self.route_filter:
                         continue
-                if self.dest_filter is not None:
+                if self.dest_filter not in (None, ""):
                     if (
                         departure[ATTR_DESTINATION][ATTR_STOP] != self.dest_filter
                         and dest != self.dest_filter
