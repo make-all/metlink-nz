@@ -22,7 +22,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries, core
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import DOMAIN, CONF_API_KEY, TIME_MINUTES
+from homeassistant.const import CONF_API_KEY, TIME_MINUTES
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
@@ -51,6 +51,7 @@ from .const import (
     CONF_ROUTE,
     CONF_STOPS,
     CONF_STOP_ID,
+    DOMAIN,
 )
 from .MetlinkAPI import Metlink
 
