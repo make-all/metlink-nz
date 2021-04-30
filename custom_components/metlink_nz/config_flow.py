@@ -38,7 +38,7 @@ AUTH_SCHEMA = vol.Schema({vol.Required(CONF_API_KEY): cv.string})
 STOP_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_STOP_ID): vol.All(cv.string, vol.Length(min=4, max=4)),
-        vol.Optional(CONF_ROUTE): vol.All(cv.string.vol.Length(max=3)),
+        vol.Optional(CONF_ROUTE): vol.All(cv.string, vol.Length(max=3)),
         vol.Optional(CONF_DEST): cv.string,
         vol.Optional(CONF_NUM_DEPARTURES): cv.positive_int,
         vol.Optional("add_another"): cv.boolean,
