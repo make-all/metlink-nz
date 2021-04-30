@@ -88,7 +88,8 @@ class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if user_input.get("add_another", False):
                 return await self.async_step_stop()
 
-            _LOGGER.debug("user_input: %s - %s", user_input, self.data)
+            # User is done adding stops, now create the config entry
+            return self.async_create_entry(title="Metlink NZ", data=self.data)
 
         return self.async_show_form(
             step_id="stop", data_schema=STOP_SCHEMA, errors=errors
