@@ -3,9 +3,9 @@
     "config_flow": true,
     "dependencies": [],
     "documentation": "https://code.jasonrumney.net/w/metlink/",
-    "domain": "metlink_nz",
+    "domain": "metlink",
     "iot_class": "cloud_polling",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "name": "Metlink NZ Transport",
     "requirements": []
 }

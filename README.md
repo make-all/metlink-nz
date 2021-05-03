@@ -21,7 +21,7 @@ notice.
 
 The integration can be installed by adding the repository
 https://github.com/make-all/metlink-nz to HACS, and installing from there.
-If you prefer to instal manually, copy `custom_components/metlink_nz` to your
+If you prefer to instal manually, copy `custom_components/metlink` to your
 installation's `config/custom_components` directory.
 
 API keys can be obtained by registering on the
@@ -32,7 +32,7 @@ the following to your `config/configuration.yaml`:
 
 ```
 sensor:
-  - platform: metlink_nz
+  - platform: metlink
 	api_key: abcdefg1234xzy
 	stops:
 	  - stop_id: 9999

@@ -17,7 +17,7 @@ from pytest_homeassistant.async_mock import AsyncMock, MagicMock
 from aiohttp import ClientResponseError
 import homeassistant.util.dt as dt_util
 
-from custom_components.metlink_nz.sensor import MetlinkSensor, slug
+from custom_components.metlink.sensor import MetlinkSensor, slug
 
 
 async def test_async_update_success(hass, aioclient_mock):

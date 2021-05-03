@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DOMAIN = "metlink_nz"
+DOMAIN = "metlink"
 
 CONF_STOPS = "stops"
 CONF_STOP_ID = "stop_id"
