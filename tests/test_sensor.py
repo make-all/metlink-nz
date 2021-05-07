@@ -17,19 +17,24 @@ from unittest.mock import AsyncMock, MagicMock
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from aiohttp import ClientResponseError
 import homeassistant.util.dt as dt_util
+from homeassistant.const import CONF_API_KEY
 
-from custom_components.metlink.const import DOMAIN
+from custom_components.metlink.const import DOMAIN, CONF_STOPS, CONF_STOP_ID
 from custom_components.metlink.sensor import MetlinkSensor, slug
 
 
-async def test_sensor(hass):
+async def test_init(hass):
     """Test the sensor initialisation."""
     entry = MockConfigEntry(
-        domain=DOMAIN, data={"apikey": "dummy", "stops": [{"stop_id": "1111"}]}
+        domain=DOMAIN,
+        data={CONF_API_KEY: "dummy", CONF_STOPS: [{CONF_STOP_ID: "1111"}]},
     )
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.metlink_1111")
+    assert state
 
 
 async def test_async_update_success(hass, aioclient_mock):
