@@ -16,7 +16,7 @@
 import logging
 from typing import Any, Dict, Optional
 from aiohttp import ClientResponseError
-from homeassistant import config_entries
+from homeassistant import config_entries, core
 from homeassistant.const import CONF_API_KEY
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
@@ -46,6 +46,20 @@ STOP_SCHEMA = vol.Schema(
 )
 
 
+async def validate_auth(apikey: str, hass: core.HomeAssistant) -> None:
+    """Validate a Metlink API key.
+
+    Raises a ValueError if the api key is invalid.
+    """
+    session = async_get_clientsession(hass)
+    metlink = Metlink(session, apikey)
+
+    try:
+        await metlink.get_predictions("9999")
+    except ClientResponseError:
+        raise ValueError
+
+
 class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Metlink config flow."""
 
@@ -54,12 +68,9 @@ class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: Dict[str, str] = {}
         if user_input is not None:
             # Validate that the api key is valid.
-            session = async_get_clientsession(self.hass)
-            metlink = Metlink(session, user_input[CONF_API_KEY])
-
             try:
-                await metlink.get_predictions("9999")
-            except ClientResponseError:
+                await validate_auth(user_input[CONF_API_KEY], self.hass)
+            except ValueError:
                 errors["base"] = "auth"
 
             if not errors:

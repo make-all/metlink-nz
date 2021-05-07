@@ -13,11 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pytest_homeassistant.async_mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 from aiohttp import ClientResponseError
 import homeassistant.util.dt as dt_util
 
+from custom_components.metlink.const import DOMAIN
 from custom_components.metlink.sensor import MetlinkSensor, slug
+
+
+async def test_sensor(hass):
+    """Test the sensor initialisation."""
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"apikey": "dummy", "stops": [{"stop_id": "1111"}]}
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
 
 
 async def test_async_update_success(hass, aioclient_mock):

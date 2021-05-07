@@ -1,4 +1,4 @@
-# Metlink NZ Transport for Home Assistant
+# Metlink Wellington Transport for Home Assistant
 
 This repo contains a custom component for Home Assistant for interfacing
 to the Metlink opendata API for obtaining realtime departure info for
