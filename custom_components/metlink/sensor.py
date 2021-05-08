@@ -88,6 +88,9 @@ async def async_setup_entry(
 ):
     """Setup sensors from a config entry created in the integrations UI."""
     config = hass.data[DOMAIN][config_entry.entry_id]
+    # Update to include new stops and remove those that have been deselected
+    if config_entry.options:
+        config.update(config_entry.options)
     session = async_get_clientsession(hass)
     metlink = Metlink(session, config[CONF_API_KEY])
     sensors = [MetlinkSensor(metlink, stop) for stop in config[CONF_STOPS]]
@@ -111,6 +114,15 @@ def slug(text: str):
     return "_".join(re.split(r'["#$%&+,/:;=?@\[\\\]^`{|}~\'\s]+', text))
 
 
+def metlink_unique_id(d: Dict):
+    uid = "metlink_" + d["stop_id"]
+    if "route_filter" in d and d["route_filter"] not in (None, ""):
+        uid = uid + "_r" + slug(d["route_filter"])
+    if "dest_filter" in d and d["dest_filter"] not in (None, ""):
+        uid = uid + "_d" + slug(d["dest_filter"])
+    return uid
+
+
 class MetlinkSensor(Entity):
     """Representation of a Metlink Stop sensor."""
 
@@ -125,12 +137,7 @@ class MetlinkSensor(Entity):
             self.num_departures = 1
         self.attrs: Dict[str, Any] = {ATTR_STOP: self.stop_id}
         self._name = "Metlink " + self.stop_id
-        uid = "metlink_" + self.stop_id
-        if self.route_filter not in (None, ""):
-            uid = uid + "_r" + slug(self.route_filter)
-        if self.dest_filter not in (None, ""):
-            uid = uid + "_d" + slug(self.dest_filter)
-        self.uid = uid
+        self.uid = metlink_unique_id(self.__dict__)
         self._state = None
         self._available = True
         self._icon = DEFAULT_ICON
@@ -223,7 +230,11 @@ class MetlinkSensor(Entity):
             self._available = True
         except (ClientError):
             self._available = False
-            _LOGGER.exception("Error retrieving data from Metlink API")
+            _LOGGER.exception(
+                "Error retrieving data from Metlink API for sensor %s.", self.name
+            )
         except (TypeError):
             self._available = False
-            _LOGGER.exception("Error parsing response from Metlink API")
+            _LOGGER.exception(
+                "Error parsing response from Metlink API for sensor %s.", self.name
+            )

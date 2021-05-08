@@ -13,13 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
 import logging
 from typing import Any, Dict, Optional
 from aiohttp import ClientResponseError
 from homeassistant import config_entries, core
 from homeassistant.const import CONF_API_KEY
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.entity_registry import (
+    async_entries_for_config_entry,
+    async_get_registry,
+)
 import voluptuous as vol
 
 from .const import (
@@ -31,6 +37,7 @@ from .const import (
     CONF_STOPS,
 )
 from .MetlinkAPI import Metlink
+from .sensor import metlink_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,6 +49,14 @@ STOP_SCHEMA = vol.Schema(
         vol.Optional(CONF_DEST, default=""): cv.string,
         vol.Optional(CONF_NUM_DEPARTURES, default=1): cv.positive_int,
         vol.Optional("add_another", default=False): cv.boolean,
+    }
+)
+OPTIONS_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_STOP_ID): vol.All(cv.string, vol.Length(min=4, max=4)),
+        vol.Optional(CONF_ROUTE, default=""): vol.All(cv.string, vol.Length(max=3)),
+        vol.Optional(CONF_DEST, default=""): cv.string,
+        vol.Optional(CONF_NUM_DEPARTURES, default=1): cv.positive_int,
     }
 )
 
@@ -100,8 +115,83 @@ class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_stop()
 
             # User is done adding stops, now create the config entry
-            return self.async_create_entry(title="Metlink NZ", data=self.data)
+            return self.async_create_entry(title="Metlink", data=self.data)
 
         return self.async_show_form(
             step_id="stop", data_schema=STOP_SCHEMA, errors=errors
+        )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
+
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handles options flow for the component."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """Manage the options for the component."""
+        entity_registry = await async_get_registry(self.hass)
+        entries = async_entries_for_config_entry(
+            entity_registry, self.config_entry.entry_id
+        )
+        errors: Dict[str, str] = {}
+        all_stops = {e.entity_id: e.original_name for e in entries}
+        stop_map = {e.entity_id: e for e in entries}
+
+        if user_input is not None:
+            updated_stops = deepcopy(self.config_entry.data[CONF_STOPS])
+
+            # Remove unchecked stops.
+            removed_entities = [
+                entity_id
+                for entity_id in stop_map.keys()
+                if entity_id not in user_input["stops"]
+            ]
+            for entity_id in removed_entities:
+                # Unregister from HA
+                entity_registry.async_remove(entity_id)
+                # Remove from our configured stops.
+                entry = stop_map[entity_id]
+                entry_stop = entry.unique_id
+                updated_stops = [
+                    e for e in updated_stops if metlink_unique_id(e) != entry_stop
+                ]
+
+            if user_input.get(CONF_STOP_ID):
+                updated_stops.append(
+                    {
+                        CONF_STOP_ID: user_input[CONF_STOP_ID],
+                        CONF_ROUTE: user_input.get(CONF_ROUTE),
+                        CONF_DEST: user_input.get(CONF_DEST),
+                        CONF_NUM_DEPARTURES: user_input.get(CONF_NUM_DEPARTURES, 1),
+                    }
+                )
+
+            return self.async_create_entry(title="", data={CONF_STOPS: updated_stops},)
+
+        options_schema = vol.Schema(
+            {
+                vol.Optional("stops", default=list(all_stops.keys())): cv.multi_select(
+                    all_stops
+                ),
+                vol.Optional(CONF_STOP_ID): vol.All(
+                    cv.string, vol.Length(min=4, max=4)
+                ),
+                vol.Optional(CONF_ROUTE, default=""): vol.All(
+                    cv.string, vol.Length(max=3)
+                ),
+                vol.Optional(CONF_DEST, default=""): cv.string,
+                vol.Optional(CONF_NUM_DEPARTURES, default=1): cv.positive_int,
+            }
+        )
+        return self.async_show_form(
+            step_id="init", data_schema=options_schema, errors=errors
         )
