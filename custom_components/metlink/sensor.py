@@ -18,7 +18,6 @@ import re
 from datetime import timedelta
 from isodate import parse_duration
 from typing import Any, Callable, Dict, Optional
-from aiohttp import ClientError
 import voluptuous as vol
 
 from homeassistant import config_entries, core
@@ -91,9 +90,11 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Setup sensors from a config entry created in the integrations UI."""
+    _LOGGER.info("Setting up Metlink from ConfigEntry")
     config = hass.data[DOMAIN][config_entry.entry_id]
     # Update to include new stops and remove those that have been deselected
     if config_entry.options:
+        _LOGGER.info(f"Updating config from {config_entry.options}")
         config.update(config_entry.options)
     session = async_get_clientsession(hass)
     metlink = Metlink(session, config[CONF_API_KEY])
@@ -108,6 +109,7 @@ async def async_setup_platform(
     discovery_info: Optional[DiscoveryInfoType] = None,
 ) -> None:
     """Set up the sensor platform."""
+    _LOGGER.info("Setting up Metlink platform.")
     session = async_get_clientsession(hass)
     metlink = Metlink(session, config[CONF_API_KEY])
     sensors = [MetlinkSensor(metlink, stop) for stop in config[CONF_STOPS]]
@@ -148,6 +150,7 @@ class MetlinkSensor(Entity):
         self._state = None
         self._available = True
         self._icon = DEFAULT_ICON
+        _LOGGER.debug(f"Created Metlink sensor {self.uid}.")
 
     @property
     def name(self) -> str:
@@ -185,7 +188,6 @@ class MetlinkSensor(Entity):
         num = 0
         try:
             data = await self.metlink.get_predictions(self.stop_id)
-            _LOGGER.debug(f"Response from Metlink API is {data}")
 
             for departure in data[ATTR_DEPARTURES]:
                 dest = departure[ATTR_DESTINATION].get(ATTR_NAME)
@@ -217,7 +219,9 @@ class MetlinkSensor(Entity):
                     suffix = ""
                 else:
                     suffix = f"_{num}"
-                _LOGGER.debug(f"Parsing {suffix} attributes from {departure}")
+                _LOGGER.debug(
+                    f"{self._name}: Parsing {suffix} attributes from {departure}"
+                )
                 _LOGGER.debug(
                     f"Resolved time as {time} from {departure[ATTR_DEPARTURE][ATTR_AIMED]} and {departure[ATTR_DEPARTURE][ATTR_EXPECTED]}"
                 )
@@ -241,9 +245,13 @@ class MetlinkSensor(Entity):
             # Clear out the unused slots
             for i in range(num, self.num_departures):
                 if i == 0:
+                    _LOGGER.warning(f"{self._name}: Clearing due to no departure info")
                     suffix = ""
                     self._state = None
                 else:
+                    _LOGGER.info(
+                        f"{self._name}: Clearing departure info for {i} due to insufficient departure info"
+                    )
                     suffix = f"_{i+1}"
                     self.attrs.pop(ATTR_DESCRIPTION + suffix, None)
                     self.attrs.pop(ATTR_DEPARTURE + suffix, None)
@@ -258,13 +266,8 @@ class MetlinkSensor(Entity):
 
         # set the sensor to unavailable on errors, but leave previous data in
         # attributes, so temporary network issues do not cause glitches.
-        except (ClientError):
+        except BaseException:
             self._available = False
             _LOGGER.exception(
                 "Error retrieving data from Metlink API for sensor %s.", self.name
-            )
-        except (TypeError):
-            self._available = False
-            _LOGGER.exception(
-                "Error parsing response from Metlink API for sensor %s.", self.name
             )
