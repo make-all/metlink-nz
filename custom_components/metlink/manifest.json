@@ -5,7 +5,7 @@
     "documentation": "https://code.jasonrumney.net/w/metlink/",
     "domain": "metlink",
     "iot_class": "cloud_polling",
-    "version": "0.6.1",
+    "version": "0.6.2",
     "name": "Metlink Wellington Transport",
     "requirements": ["isodate==0.6.0"]
 }
