@@ -26,9 +26,10 @@
     },
     "options": {
 	"step": {
-	    "stop": {
+	    "init": {
 		"title": "Manage Stops",
 		"data": {
+		    "stops": "Existing stops (unselect to remove)"
 		    "stop_id": "4 digit or letter stop id.",
 		    "route": "(Optional) Route filter.",
 		    "destination": "(Optional) Final destination filter.",
