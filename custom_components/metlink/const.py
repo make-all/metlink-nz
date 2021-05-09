@@ -13,6 +13,7 @@
 # limitations under the License.
 
 DOMAIN = "metlink"
+ATTRIBUTION = "Data provided by Greater Wellington Regional Council"
 
 CONF_STOPS = "stops"
 CONF_STOP_ID = "stop_id"

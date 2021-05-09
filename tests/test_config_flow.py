@@ -7,6 +7,7 @@ from aiohttp import ClientResponseError
 
 from homeassistant.const import CONF_API_KEY
 from custom_components.metlink.const import (
+    ATTRIBUTION,
     DOMAIN,
     CONF_STOPS,
     CONF_STOP_ID,
@@ -17,11 +18,28 @@ from custom_components.metlink.const import (
 from custom_components.metlink import config_flow
 
 
-async def test_init(hass):
+async def test_init_entry(hass):
     """Test the sensor initialisation."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_API_KEY: "dummy", CONF_STOPS: [{CONF_STOP_ID: "1111"}]},
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.metlink_1111")
+    assert state
+
+
+async def test_init_entry_fixup(hass):
+    """Test the sensor initialisation when invalid num_departures is given."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_API_KEY: "dummy",
+            CONF_STOPS: [{CONF_STOP_ID: "1111", CONF_NUM_DEPARTURES: 0}],
+        },
     )
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)

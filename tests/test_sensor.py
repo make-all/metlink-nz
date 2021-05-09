@@ -18,103 +18,105 @@ from aiohttp import ClientResponseError
 import homeassistant.util.dt as dt_util
 
 from custom_components.metlink.sensor import MetlinkSensor, slug
+from custom_components.metlink.const import (
+    ATTRIBUTION,
+    CONF_DEST,
+    CONF_NUM_DEPARTURES,
+    CONF_ROUTE,
+    CONF_STOP_ID,
+)
+
+TEST_RESPONSE = [
+    {
+        "farezone": "1",
+        "closed": False,
+        "departures": [
+            {
+                "stop_id": "WELL",
+                "service_id": "HVL",
+                "direction": "outbound",
+                "operator": "RAIL",
+                "origin": {"stop_id": "WELL", "name": "WgtnStn"},
+                "destination": {"stop_id": "UPPE", "name": "UPPE-All stops"},
+                "delay": "PT2M",
+                "vehicle_id": None,
+                "name": "WgtnStn",
+                "arrival": {"expected": None},
+                "departure": {
+                    "aimed": "2021-04-29T21:35:00+12:00",
+                    "expected": "2021-04-29T21:37:00+12:00",
+                },
+                "status": "delay",
+                "monitored": False,
+                "wheelchair_accessible": False,
+            },
+            {
+                "stop_id": "WELL",
+                "service_id": "KPL",
+                "direction": "outbound",
+                "operator": "RAIL",
+                "origin": {"stop_id": "WELL", "name": "WgtnStn"},
+                "destination": {"stop_id": "WAIK", "name": "WAIK-All stops"},
+                "delay": "PT0S",
+                "vehicle_id": None,
+                "name": "WgtnStn",
+                "arrival": {"expected": None},
+                "departure": {"aimed": "2021-04-29T21:44:00+12:00", "expected": None,},
+                "status": None,
+                "monitored": False,
+                "wheelchair_accessible": False,
+            },
+            {
+                "stop_id": "WELL",
+                "service_id": "KPL",
+                "direction": "outbound",
+                "operator": "RAIL",
+                "origin": {"stop_id": "WELL", "name": "WgtnStn"},
+                "destination": {"stop_id": "PORI", "name": "Porirua"},
+                "delay": "PT0S",
+                "vehicle_id": None,
+                "name": "WgtnStn",
+                "arrival": {"expected": None},
+                "departure": {"aimed": "2021-04-29T21:55:00+12:00", "expected": None,},
+                "status": None,
+                "monitored": False,
+                "wheelchair_accessible": False,
+            },
+            {
+                "stop_id": "WELL",
+                "service_id": "KPL",
+                "direction": "outbound",
+                "operator": "RAIL",
+                "origin": {"stop_id": "WELL", "name": "WgtnStn"},
+                "destination": {"stop_id": "PORI", "name": "Porirua"},
+                "delay": "PT30M34S",
+                "vehicle_id": None,
+                "name": "WgtnStn",
+                "arrival": {"expected": None},
+                "departure": {
+                    "aimed": "2021-04-29T22:15:00+12:00",
+                    "expected": "2021-04-29T22:45:34+12:00",
+                },
+                "status": "late",
+                "monitored": False,
+                "wheelchair_accessible": False,
+            },
+        ],
+    }
+]
 
 
 async def test_async_update_success(hass, aioclient_mock):
     """Tests a fully successful async_update."""
     metlink = MagicMock()
-    metlink.get_predictions = AsyncMock(
-        side_effect=[
-            {
-                "farezone": "1",
-                "closed": False,
-                "departures": [
-                    {
-                        "stop_id": "WELL",
-                        "service_id": "HVL",
-                        "direction": "outbound",
-                        "operator": "RAIL",
-                        "origin": {"stop_id": "WELL", "name": "WgtnStn"},
-                        "destination": {"stop_id": "UPPE", "name": "UPPE-All stops"},
-                        "delay": "PT2M",
-                        "vehicle_id": None,
-                        "name": "WgtnStn",
-                        "arrival": {"expected": None},
-                        "departure": {
-                            "aimed": "2021-04-29T21:35:00+12:00",
-                            "expected": "2021-04-29T21:37:00+12:00",
-                        },
-                        "status": "delay",
-                        "monitored": False,
-                        "wheelchair_accessible": False,
-                    },
-                    {
-                        "stop_id": "WELL",
-                        "service_id": "KPL",
-                        "direction": "outbound",
-                        "operator": "RAIL",
-                        "origin": {"stop_id": "WELL", "name": "WgtnStn"},
-                        "destination": {"stop_id": "WAIK", "name": "WAIK-All stops"},
-                        "delay": "PT0S",
-                        "vehicle_id": None,
-                        "name": "WgtnStn",
-                        "arrival": {"expected": None},
-                        "departure": {
-                            "aimed": "2021-04-29T21:44:00+12:00",
-                            "expected": None,
-                        },
-                        "status": None,
-                        "monitored": False,
-                        "wheelchair_accessible": False,
-                    },
-                    {
-                        "stop_id": "WELL",
-                        "service_id": "KPL",
-                        "direction": "outbound",
-                        "operator": "RAIL",
-                        "origin": {"stop_id": "WELL", "name": "WgtnStn"},
-                        "destination": {"stop_id": "PORI", "name": "Porirua"},
-                        "delay": "PT0S",
-                        "vehicle_id": None,
-                        "name": "WgtnStn",
-                        "arrival": {"expected": None},
-                        "departure": {
-                            "aimed": "2021-04-29T21:55:00+12:00",
-                            "expected": None,
-                        },
-                        "status": None,
-                        "monitored": False,
-                        "wheelchair_accessible": False,
-                    },
-                    {
-                        "stop_id": "WELL",
-                        "service_id": "KPL",
-                        "direction": "outbound",
-                        "operator": "RAIL",
-                        "origin": {"stop_id": "WELL", "name": "WgtnStn"},
-                        "destination": {"stop_id": "PORI", "name": "Porirua"},
-                        "delay": "PT0S",
-                        "vehicle_id": None,
-                        "name": "WgtnStn",
-                        "arrival": {"expected": None},
-                        "departure": {
-                            "aimed": "2021-04-29T22:15:00+12:00",
-                            "expected": None,
-                        },
-                        "status": None,
-                        "monitored": False,
-                        "wheelchair_accessible": False,
-                    },
-                ],
-            }
-        ]
-    )
+    metlink.get_predictions = AsyncMock(side_effect=TEST_RESPONSE)
     sensor = MetlinkSensor(
-        metlink, {"stop_id": "WELL", "route": "KPL", "destination": "Porirua"},
+        metlink, {CONF_STOP_ID: "WELL", CONF_ROUTE: "KPL", CONF_DEST: "Porirua"},
     )
     await sensor.async_update()
 
     expected = {
+        "attribution": ATTRIBUTION,
         "stop_id": "WELL",
         "departure": "2021-04-29T21:55:00+12:00",
         "description": "KPL Porirua",
@@ -123,6 +125,8 @@ async def test_async_update_success(hass, aioclient_mock):
         "status": "sched",
         "destination_id": "PORI",
         "destination": "Porirua",
+        "delay": 0,
+        "wheelchair_accessible": False,
     }
 
     assert expected == sensor.attrs
@@ -131,10 +135,8 @@ async def test_async_update_success(hass, aioclient_mock):
     assert sensor.icon == "mdi:train"
     assert sensor.name == "Metlink WELL"
     assert sensor.unique_id == "metlink_WELL_rKPL_dPorirua"
-    assert sensor.unit_of_measurement == "min"
     time = dt_util.parse_datetime(expected["departure"])
-    minutes = int((time - dt_util.now()).total_seconds() // 60)
-    assert sensor.state == minutes
+    assert sensor.state == time
 
 
 async def test_async_update_failed():
@@ -148,7 +150,70 @@ async def test_async_update_failed():
     await sensor.async_update()
 
     assert sensor.available is False
-    assert {"stop_id": "WELL"} == sensor.attrs
+    assert {"attribution": ATTRIBUTION, "stop_id": "WELL"} == sensor.attrs
+
+
+async def test_async_update_misformatted():
+    """Tests a misformatted async_update."""
+    metlink = MagicMock()
+    metlink.get_predictions = AsyncMock(side_effect=TypeError("Test error handling"))
+
+    sensor = MetlinkSensor(metlink, {"stop_id": "WELL"})
+    await sensor.async_update()
+
+    assert sensor.available is False
+    assert {"attribution": ATTRIBUTION, "stop_id": "WELL"} == sensor.attrs
+
+
+async def test_async_update_multiple(hass, aioclient_mock):
+    """Tests a fully successful async_update."""
+    metlink = MagicMock()
+    metlink.get_predictions = AsyncMock(side_effect=TEST_RESPONSE)
+    sensor = MetlinkSensor(
+        metlink, {CONF_STOP_ID: "WELL", CONF_ROUTE: "KPL", CONF_NUM_DEPARTURES: 4},
+    )
+    await sensor.async_update()
+
+    expected = {
+        "attribution": ATTRIBUTION,
+        "stop_id": "WELL",
+        "departure": "2021-04-29T21:44:00+12:00",
+        "description": "KPL WAIK-All stops",
+        "service_id": "KPL",
+        "service_name": "WgtnStn",
+        "status": "sched",
+        "destination_id": "WAIK",
+        "destination": "WAIK-All stops",
+        "delay": 0,
+        "wheelchair_accessible": False,
+        "departure_2": "2021-04-29T21:55:00+12:00",
+        "description_2": "KPL Porirua",
+        "service_id_2": "KPL",
+        "service_name_2": "WgtnStn",
+        "status_2": "sched",
+        "destination_id_2": "PORI",
+        "destination_2": "Porirua",
+        "delay_2": 0,
+        "wheelchair_accessible_2": False,
+        "departure_3": "2021-04-29T22:45:34+12:00",
+        "description_3": "KPL Porirua",
+        "service_id_3": "KPL",
+        "service_name_3": "WgtnStn",
+        "status_3": "late",
+        "destination_id_3": "PORI",
+        "destination_3": "Porirua",
+        "delay_3": 30,
+        "wheelchair_accessible_3": False,
+    }
+
+    assert expected == sensor.attrs
+    assert expected == sensor.device_state_attributes
+    assert sensor.available is True
+    assert sensor.icon == "mdi:train"
+    assert sensor.name == "Metlink WELL"
+    assert sensor.unique_id == "metlink_WELL_rKPL"
+    time = dt_util.parse_datetime(expected["departure"])
+    assert sensor.state == time
 
 
 def test_slug():

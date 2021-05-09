@@ -16,13 +16,14 @@
 import logging
 import re
 from datetime import timedelta
+from isodate import parse_duration
 from typing import Any, Callable, Dict, Optional
 from aiohttp import ClientError
 import voluptuous as vol
 
 from homeassistant import config_entries, core
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import CONF_API_KEY, TIME_MINUTES
+from homeassistant.const import ATTR_ATTRIBUTION, CONF_API_KEY, DEVICE_CLASS_TIMESTAMP
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
@@ -33,7 +34,9 @@ from homeassistant.helpers.typing import (
 import homeassistant.util.dt as dt_util
 
 from .const import (
+    ATTR_ACCESSIBLE,
     ATTR_AIMED,
+    ATTR_DELAY,
     ATTR_DEPARTURE,
     ATTR_DEPARTURES,
     ATTR_DESCRIPTION,
@@ -46,6 +49,7 @@ from .const import (
     ATTR_SERVICE_NAME,
     ATTR_STATUS,
     ATTR_STOP,
+    ATTRIBUTION,
     CONF_DEST,
     CONF_NUM_DEPARTURES,
     CONF_ROUTE,
@@ -135,7 +139,10 @@ class MetlinkSensor(Entity):
         self.num_departures = stop.get(CONF_NUM_DEPARTURES, 1)
         if self.num_departures < 1:
             self.num_departures = 1
-        self.attrs: Dict[str, Any] = {ATTR_STOP: self.stop_id}
+        self.attrs: Dict[str, Any] = {
+            ATTR_STOP: self.stop_id,
+            ATTR_ATTRIBUTION: ATTRIBUTION,
+        }
         self._name = "Metlink " + self.stop_id
         self.uid = metlink_unique_id(self.__dict__)
         self._state = None
@@ -164,21 +171,21 @@ class MetlinkSensor(Entity):
 
     @property
     def state(self):
-        return int((self._state - dt_util.now()).total_seconds() // 60)
+        return self._state
 
     @property
-    def unit_of_measurement(self):
-        return TIME_MINUTES
+    def device_class(self):
+        return DEVICE_CLASS_TIMESTAMP
 
     @property
     def device_state_attributes(self) -> Dict[str, Any]:
         return self.attrs
 
     async def async_update(self):
+        num = 0
         try:
             data = await self.metlink.get_predictions(self.stop_id)
             _LOGGER.debug(f"Response from Metlink API is {data}")
-            num = 0
 
             for departure in data[ATTR_DEPARTURES]:
                 dest = departure[ATTR_DESTINATION].get(ATTR_NAME)
@@ -198,17 +205,15 @@ class MetlinkSensor(Entity):
                 if time is None:
                     time = departure[ATTR_DEPARTURE].get(ATTR_AIMED)
 
+                name = f"{departure[ATTR_SERVICE]} {dest}"
                 if num == 1:
                     # First record is the next departure, so use that
                     # to set the state (departure time) and friendly name
-                    # (service id and detination name)
                     self._state = dt_util.parse_datetime(time)
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
-                    fname = f"{departure[ATTR_SERVICE]} {dest}"
-                    self.attrs[ATTR_DESCRIPTION] = fname
-                    _LOGGER.info(f"{self._name}: {fname} departs at {time}")
+                    _LOGGER.info(f"{self._name}: {name} departs at {time}")
                     suffix = ""
                 else:
                     suffix = f"_{num}"
@@ -216,6 +221,7 @@ class MetlinkSensor(Entity):
                 _LOGGER.debug(
                     f"Resolved time as {time} from {departure[ATTR_DEPARTURE][ATTR_AIMED]} and {departure[ATTR_DEPARTURE][ATTR_EXPECTED]}"
                 )
+                self.attrs[ATTR_DESCRIPTION + suffix] = name
                 self.attrs[ATTR_DEPARTURE + suffix] = time
                 self.attrs[ATTR_SERVICE + suffix] = departure[ATTR_SERVICE]
                 self.attrs[ATTR_SERVICE_NAME + suffix] = departure[ATTR_NAME]
@@ -227,7 +233,31 @@ class MetlinkSensor(Entity):
                 self.attrs[ATTR_DESTINATION_ID + suffix] = departure[ATTR_DESTINATION][
                     ATTR_STOP
                 ]
+                self.attrs[ATTR_ACCESSIBLE + suffix] = departure[ATTR_ACCESSIBLE]
+                self.attrs[ATTR_DELAY + suffix] = int(
+                    parse_duration(departure[ATTR_DELAY]) / timedelta(minutes=1)
+                )
             self._available = True
+            # Clear out the unused slots
+            for i in range(num, self.num_departures):
+                if i == 0:
+                    suffix = ""
+                    self._state = None
+                else:
+                    suffix = f"_{i+1}"
+                    self.attrs.pop(ATTR_DESCRIPTION + suffix, None)
+                    self.attrs.pop(ATTR_DEPARTURE + suffix, None)
+                    self.attrs.pop(ATTR_DEPARTURE + suffix, None)
+                    self.attrs.pop(ATTR_SERVICE + suffix, None)
+                    self.attrs.pop(ATTR_SERVICE_NAME + suffix, None)
+                    self.attrs.pop(ATTR_STATUS + suffix, None)
+                    self.attrs.pop(ATTR_DESTINATION + suffix, None)
+                    self.attrs.pop(ATTR_DESTINATION_ID + suffix, None)
+                    self.attrs.pop(ATTR_ACCESSIBLE + suffix, None)
+                    self.attrs.pop(ATTR_DELAY + suffix, None)
+
+        # set the sensor to unavailable on errors, but leave previous data in
+        # attributes, so temporary network issues do not cause glitches.
         except (ClientError):
             self._available = False
             _LOGGER.exception(
