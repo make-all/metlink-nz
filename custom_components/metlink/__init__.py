@@ -21,6 +21,7 @@ async def async_setup_entry(
     hass.data[DOMAIN][entry.entry_id] = data
 
     # Forward the setup to the sensor platform.
+    _LOGGER.debug(f"Setting up based on {entry.data}")
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor")
     )
@@ -31,6 +32,7 @@ async def options_update_listener(
     hass: core.HomeAssistant, config_entry: config_entries.ConfigEntry
 ):
     """Handle options update."""
+    _LOGGER.debug("Reloading config after options update")
     await hass.config_entries.async_reload(config_entry.entry_id)
 
 
@@ -38,6 +40,7 @@ async def async_unload_entry(
     hass: core.HomeAssistant, entry: config_entries.ConfigEntry
 ) -> bool:
     """Unload a config entry."""
+    _LOGGER.debug("Unloading")
     unload_ok = all(
         await asyncio.gather(
             *[hass.config_entries.async_forward_entry_unload(entry, "sensor")]
@@ -49,11 +52,14 @@ async def async_unload_entry(
     # Remove from domain
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
+    else:
+        _LOGGER.warning("Unload failed")
 
     return unload_ok
 
 
 async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
     """Setup the Metlink component from yaml configuration."""
+    _LOGGER.debug("Setting up from YAML config")
     hass.data.setdefault(DOMAIN, {})
     return True

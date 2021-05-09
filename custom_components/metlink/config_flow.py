@@ -64,6 +64,7 @@ async def validate_auth(apikey: str, hass: core.HomeAssistant) -> None:
     try:
         await metlink.get_predictions("9999")
     except ClientResponseError:
+        _LOGGER.error("Metlink API Key rejected by server")
         raise ValueError
 
 
@@ -75,17 +76,21 @@ class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: Dict[str, str] = {}
         if user_input is not None:
             # Validate that the api key is valid.
+            _LOGGER.debug("Validating user supplied API key.")
             try:
                 await validate_auth(user_input[CONF_API_KEY], self.hass)
             except ValueError:
+                _LOGGER.warning("API key validation failed, restarting config")
                 errors["base"] = "auth"
 
             if not errors:
                 self.data = user_input
                 self.data[CONF_STOPS] = []
                 # Return the form for the next step
+                _LOGGER.info("Proceeding to configure stops")
                 return await self.async_step_stop()
 
+        _LOGGER.info("Starting configuration process")
         return self.async_show_form(
             step_id="user", data_schema=AUTH_SCHEMA, errors=errors
         )
@@ -94,6 +99,7 @@ class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Second step in config flow to add a stop to watch."""
         errors: Dict[str, str] = {}
         if user_input is not None:
+            _LOGGER.info(f"Adding stop {user_input[CONF_STOP_ID]} to config.")
             self.data[CONF_STOPS].append(
                 {
                     CONF_STOP_ID: user_input[CONF_STOP_ID],
@@ -104,11 +110,15 @@ class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
             # show the form again if add_another is ticked
             if user_input.get("add_another", False):
+                _LOGGER.debug("Continuing to add another stop.")
                 return await self.async_step_stop()
 
             # User is done adding stops, now create the config entry
+            n_stops = len(self.data[CONF_STOPS])
+            _LOGGER.info(f"Saving config with {n_stops} stops.")
             return self.async_create_entry(title="Metlink", data=self.data)
 
+        _LOGGER.debug("Showing stop configuration form")
         return self.async_show_form(
             step_id="stop", data_schema=STOP_SCHEMA, errors=errors
         )
@@ -139,7 +149,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         stop_map = {e.entity_id: e for e in entries}
 
         if user_input is not None:
+            _LOGGER.debug(f"Starting reconfiguration for {user_input}")
             updated_stops = deepcopy(self.config_entry.data[CONF_STOPS])
+            _LOGGER.debug(f"Stops before reconfiguration: {updated_stops}")
 
             # Remove unchecked stops.
             removed_entities = [
@@ -153,10 +165,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 # Remove from our configured stops.
                 entry = stop_map[entity_id]
                 entry_stop = entry.unique_id
+                _LOGGER.info(f"Removing stop {entry_stop}")
                 updated_stops = [
                     e for e in updated_stops if metlink_unique_id(e) != entry_stop
                 ]
 
+            _LOGGER.debug(f"Stops after removals: {updated_stops}")
             if user_input.get(CONF_STOP_ID):
                 updated_stops.append(
                     {
@@ -167,6 +181,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     }
                 )
 
+            _LOGGER.debug(f"Reconfigured stops: {updated_stops}")
             return self.async_create_entry(title="", data={CONF_STOPS: updated_stops},)
 
         options_schema = vol.Schema(
@@ -184,6 +199,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_NUM_DEPARTURES, default=1): cv.positive_int,
             }
         )
+        _LOGGER.debug("Showing Reconfiguration form")
         return self.async_show_form(
             step_id="init", data_schema=options_schema, errors=errors
         )

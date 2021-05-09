@@ -59,6 +59,7 @@ from .const import (
 from .MetlinkAPI import Metlink
 
 _LOGGER = logging.getLogger(__name__)
+VERBOSE = 1
 SCAN_INTERVAL = timedelta(minutes=2)
 
 STOP_SCHEMA = vol.Schema(
@@ -219,11 +220,13 @@ class MetlinkSensor(Entity):
                     suffix = ""
                 else:
                     suffix = f"_{num}"
-                _LOGGER.debug(
-                    f"{self._name}: Parsing {suffix} attributes from {departure}"
+                _LOGGER.log(
+                    VERBOSE,
+                    f"{self._name}: Parsing {suffix} attributes from {departure}",
                 )
-                _LOGGER.debug(
-                    f"Resolved time as {time} from {departure[ATTR_DEPARTURE][ATTR_AIMED]} and {departure[ATTR_DEPARTURE][ATTR_EXPECTED]}"
+                _LOGGER.log(
+                    VERBOSE,
+                    f"Resolved time as {time} from {departure[ATTR_DEPARTURE][ATTR_AIMED]} and {departure[ATTR_DEPARTURE][ATTR_EXPECTED]}",
                 )
                 self.attrs[ATTR_DESCRIPTION + suffix] = name
                 self.attrs[ATTR_DEPARTURE + suffix] = time
