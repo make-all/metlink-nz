@@ -45,9 +45,9 @@ from .const import (
     ATTR_NAME,
     ATTR_OPERATOR,
     ATTR_SERVICE,
-    ATTR_SERVICE_NAME,
     ATTR_STATUS,
     ATTR_STOP,
+    ATTR_STOP_NAME,
     ATTRIBUTION,
     CONF_DEST,
     CONF_NUM_DEPARTURES,
@@ -216,6 +216,7 @@ class MetlinkSensor(Entity):
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
+                    self.attrs[ATTR_STOP_NAME] = departure[ATTR_NAME]
                     _LOGGER.info(f"{self._name}: {name} departs at {time}")
                     suffix = ""
                 else:
@@ -231,7 +232,6 @@ class MetlinkSensor(Entity):
                 self.attrs[ATTR_DESCRIPTION + suffix] = name
                 self.attrs[ATTR_DEPARTURE + suffix] = time
                 self.attrs[ATTR_SERVICE + suffix] = departure[ATTR_SERVICE]
-                self.attrs[ATTR_SERVICE_NAME + suffix] = departure[ATTR_NAME]
                 status = departure.get(ATTR_STATUS)
                 if status is None:
                     status = DEFAULT_STATUS
@@ -260,7 +260,6 @@ class MetlinkSensor(Entity):
                     self.attrs.pop(ATTR_DEPARTURE + suffix, None)
                     self.attrs.pop(ATTR_DEPARTURE + suffix, None)
                     self.attrs.pop(ATTR_SERVICE + suffix, None)
-                    self.attrs.pop(ATTR_SERVICE_NAME + suffix, None)
                     self.attrs.pop(ATTR_STATUS + suffix, None)
                     self.attrs.pop(ATTR_DESTINATION + suffix, None)
                     self.attrs.pop(ATTR_DESTINATION_ID + suffix, None)
