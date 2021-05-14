@@ -2,7 +2,7 @@
     "codeowners": ["@make-all"],
     "config_flow": true,
     "dependencies": [],
-    "documentation": "https://code.jasonrumney.net/w/metlink/",
+    "documentation": "https://github.com/make-all/metlink-nz/wiki",
     "domain": "metlink",
     "iot_class": "cloud_polling",
     "version": "0.6.2",
