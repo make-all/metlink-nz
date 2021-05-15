@@ -14,10 +14,10 @@
 # limitations under the License.
 
 from unittest.mock import AsyncMock, MagicMock
+
 from aiohttp import ClientResponseError
 import homeassistant.util.dt as dt_util
 
-from custom_components.metlink.sensor import MetlinkSensor, slug
 from custom_components.metlink.const import (
     ATTRIBUTION,
     CONF_DEST,
@@ -25,6 +25,7 @@ from custom_components.metlink.const import (
     CONF_ROUTE,
     CONF_STOP_ID,
 )
+from custom_components.metlink.sensor import MetlinkSensor, slug
 
 TEST_RESPONSE = [
     {
@@ -61,7 +62,10 @@ TEST_RESPONSE = [
                 "vehicle_id": None,
                 "name": "WgtnStn",
                 "arrival": {"expected": None},
-                "departure": {"aimed": "2021-04-29T21:44:00+12:00", "expected": None,},
+                "departure": {
+                    "aimed": "2021-04-29T21:44:00+12:00",
+                    "expected": None,
+                },
                 "status": None,
                 "monitored": False,
                 "wheelchair_accessible": False,
@@ -77,7 +81,10 @@ TEST_RESPONSE = [
                 "vehicle_id": None,
                 "name": "WgtnStn",
                 "arrival": {"expected": None},
-                "departure": {"aimed": "2021-04-29T21:55:00+12:00", "expected": None,},
+                "departure": {
+                    "aimed": "2021-04-29T21:55:00+12:00",
+                    "expected": None,
+                },
                 "status": None,
                 "monitored": False,
                 "wheelchair_accessible": False,
@@ -111,7 +118,8 @@ async def test_async_update_success(hass, aioclient_mock):
     metlink = MagicMock()
     metlink.get_predictions = AsyncMock(side_effect=TEST_RESPONSE)
     sensor = MetlinkSensor(
-        metlink, {CONF_STOP_ID: "WELL", CONF_ROUTE: "KPL", CONF_DEST: "Porirua"},
+        metlink,
+        {CONF_STOP_ID: "WELL", CONF_ROUTE: "KPL", CONF_DEST: "Porirua"},
     )
     await sensor.async_update()
 
@@ -170,7 +178,8 @@ async def test_async_update_multiple(hass, aioclient_mock):
     metlink = MagicMock()
     metlink.get_predictions = AsyncMock(side_effect=TEST_RESPONSE)
     sensor = MetlinkSensor(
-        metlink, {CONF_STOP_ID: "WELL", CONF_ROUTE: "KPL", CONF_NUM_DEPARTURES: 4},
+        metlink,
+        {CONF_STOP_ID: "WELL", CONF_ROUTE: "KPL", CONF_NUM_DEPARTURES: 4},
     )
     await sensor.async_update()
 

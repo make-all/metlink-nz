@@ -16,6 +16,7 @@
 from copy import deepcopy
 import logging
 from typing import Any, Dict, Optional
+
 from aiohttp import ClientResponseError
 from homeassistant import config_entries, core
 from homeassistant.const import CONF_API_KEY
@@ -28,15 +29,15 @@ from homeassistant.helpers.entity_registry import (
 )
 import voluptuous as vol
 
+from .MetlinkAPI import Metlink
 from .const import (
-    DOMAIN,
-    CONF_STOP_ID,
-    CONF_ROUTE,
     CONF_DEST,
     CONF_NUM_DEPARTURES,
+    CONF_ROUTE,
+    CONF_STOP_ID,
     CONF_STOPS,
+    DOMAIN,
 )
-from .MetlinkAPI import Metlink
 from .sensor import metlink_unique_id
 
 _LOGGER = logging.getLogger(__name__)
@@ -182,7 +183,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 )
 
             _LOGGER.debug(f"Reconfigured stops: {updated_stops}")
-            return self.async_create_entry(title="", data={CONF_STOPS: updated_stops},)
+            return self.async_create_entry(
+                title="",
+                data={CONF_STOPS: updated_stops},
+            )
 
         options_schema = vol.Schema(
             {

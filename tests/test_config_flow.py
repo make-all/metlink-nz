@@ -1,21 +1,21 @@
 """Tests for the config_flow."""
-from unittest.mock import patch, AsyncMock, ANY
+from unittest.mock import ANY, AsyncMock, patch
+
+from aiohttp import ClientResponseError
+from homeassistant.const import CONF_API_KEY
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from aiohttp import ClientResponseError
-
-from homeassistant.const import CONF_API_KEY
+from custom_components.metlink import config_flow
 from custom_components.metlink.const import (
     ATTRIBUTION,
-    DOMAIN,
-    CONF_STOPS,
-    CONF_STOP_ID,
-    CONF_ROUTE,
     CONF_DEST,
     CONF_NUM_DEPARTURES,
+    CONF_ROUTE,
+    CONF_STOP_ID,
+    CONF_STOPS,
+    DOMAIN,
 )
-from custom_components.metlink import config_flow
 
 
 async def test_init_entry(hass):
@@ -142,7 +142,8 @@ async def test_flow_stop_add_another(hass):
         config_flow.DOMAIN, context={"source": "stop"}
     )
     result = await hass.config_entries.flow.async_configure(
-        _result["flow_id"], user_input={CONF_STOP_ID: "1111", "add_another": True},
+        _result["flow_id"],
+        user_input={CONF_STOP_ID: "1111", "add_another": True},
     )
     assert "stop" == result["step_id"]
     assert "form" == result["type"]
@@ -162,7 +163,8 @@ async def test_flow_stops_creates_config_entry(m_metlink, hass):
         config_flow.DOMAIN, context={"source": "stop"}
     )
     result = await hass.config_entries.flow.async_configure(
-        _result["flow_id"], user_input={CONF_STOP_ID: "1111"},
+        _result["flow_id"],
+        user_input={CONF_STOP_ID: "1111"},
     )
     expected = {
         "version": 1,

@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import logging
 import re
-from datetime import timedelta
-from isodate import parse_duration
 from typing import Any, Callable, Dict, Optional
-import voluptuous as vol
 
 from homeassistant import config_entries, core
 from homeassistant.components.sensor import PLATFORM_SCHEMA
@@ -26,12 +24,12 @@ from homeassistant.const import ATTR_ATTRIBUTION, CONF_API_KEY, DEVICE_CLASS_TIM
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.typing import (
-    ConfigType,
-    DiscoveryInfoType,
-)
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 import homeassistant.util.dt as dt_util
+from isodate import parse_duration
+import voluptuous as vol
 
+from .MetlinkAPI import Metlink
 from .const import (
     ATTR_ACCESSIBLE,
     ATTR_AIMED,
@@ -52,11 +50,10 @@ from .const import (
     CONF_DEST,
     CONF_NUM_DEPARTURES,
     CONF_ROUTE,
-    CONF_STOPS,
     CONF_STOP_ID,
+    CONF_STOPS,
     DOMAIN,
 )
-from .MetlinkAPI import Metlink
 
 _LOGGER = logging.getLogger(__name__)
 VERBOSE = 1

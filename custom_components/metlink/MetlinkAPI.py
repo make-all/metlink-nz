@@ -42,7 +42,9 @@ class Metlink(object):
         query = {STOP_PARAM: stop_id}
         _LOGGER.debug(f"Metlink request for {stop_id}")
         async with self._session.get(
-            PREDICTIONS_URL, params=query, headers=headers,
+            PREDICTIONS_URL,
+            params=query,
+            headers=headers,
         ) as r:
             r.raise_for_status()
             return await r.json()
