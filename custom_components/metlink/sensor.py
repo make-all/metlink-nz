@@ -60,7 +60,8 @@ from .MetlinkAPI import Metlink
 
 _LOGGER = logging.getLogger(__name__)
 VERBOSE = 1
-SCAN_INTERVAL = timedelta(minutes=2)
+# Set the scan interval to 30 seconds, to get up to date times as the time approaches.  But polls are dynamically limited by update_time below.
+SCAN_INTERVAL = timedelta(seconds=30)
 
 STOP_SCHEMA = vol.Schema(
     {
@@ -151,6 +152,7 @@ class MetlinkSensor(Entity):
         self._state = None
         self._available = True
         self._icon = DEFAULT_ICON
+        self.update_time = dt_util.as_local(dt_util.utcnow())
         _LOGGER.debug(f"Created Metlink sensor {self.uid}.")
 
     @property
@@ -186,6 +188,11 @@ class MetlinkSensor(Entity):
         return self.attrs
 
     async def async_update(self):
+        # Only poll the API if it is time to do so
+        now = dt_util.as_local(dt_util.utcnow())
+        if self.update_time > now:
+            return
+
         num = 0
         try:
             data = await self.metlink.get_predictions(self.stop_id)
@@ -219,6 +226,26 @@ class MetlinkSensor(Entity):
                     self.attrs[ATTR_STOP_NAME] = departure[ATTR_NAME]
                     _LOGGER.info(f"{self._name}: {name} departs at {time}")
                     suffix = ""
+                    # Dynamic polling of the API to get accurate predictions
+                    # close to the time, without overloading the server when
+                    # there is nothing pending:
+                    when = (self._state - now).total_seconds()
+                    # Within 3 minutes, poll next call as well
+                    if when < 180:
+                        self.update_time = now
+                    # Within 15 minutes, poll every two minutes
+                    elif when < 900:
+                        self.update_time = now + timedelta(minutes=2)
+                    # Within an hour, poll every 10 minutes
+                    elif when < 3600:
+                        self.update_time = now + timedelta(minutes=10)
+                    # More than an hour away, don't poll until 1 hour before
+                    else:
+                        self.update_time = self._state - timedelta(hours=1)
+
+                    _LOGGER.debug(
+                        f"Next departure at {self._state}, blocking updates until {self.update_time}"
+                    )
                 else:
                     suffix = f"_{num}"
                 _LOGGER.log(
