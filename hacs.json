@@ -2,6 +2,6 @@
     "name": "Metlink Wellington Transport",
     "render_readme": true,
     "domains": ["sensor"],
-    "country": "NZ"
+    "country": "NZ",
     "iot_class": "Cloud Polling"
 }
