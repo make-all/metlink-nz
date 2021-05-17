@@ -60,3 +60,5 @@ there is more than one result being returned.
 
 If more than 1 result is requested in `num_departures`, the attributes
 will be suffixed with a number for second and subsequent departures.
+
+[![BuyMeCoffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jasonrumney)
