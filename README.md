@@ -1,7 +1,5 @@
 # Metlink Wellington Transport for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
-
 This is a custom component for Home Assistant which uses
 the [Metlink opendata API](https://opendata.metlink.org.nz/) to obtain
 realtime departure info for Greater Wellington public transport, which can
@@ -9,6 +7,8 @@ then be displayed on your Home Assistant dashboard or used in automations.
 
 
 ## Installation
+
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
 The integration can be installed by adding the custom repository
 https://github.com/make-all/metlink-nz to HACS, and installing from there.
