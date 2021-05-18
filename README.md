@@ -31,13 +31,13 @@ the following to your `config/configuration.yaml`:
 ```
 sensor:
   - platform: metlink
-	api_key: abcdefg1234xzy
-	stops:
-	  - stop_id: 9999
-	  - stop_id: WELL
-	    route: HVL
-	  - stop_id: 5016
-	    destination: 3451
+    api_key: abcdefg1234xzy
+    stops:
+      - stop_id: 9999
+      - stop_id: WELL
+        route: HVL
+      - stop_id: 5016
+        destination: 3451
         num_departures: 3
 ```
 
