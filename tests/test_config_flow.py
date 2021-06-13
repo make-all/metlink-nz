@@ -18,6 +18,11 @@ from custom_components.metlink.const import (
 )
 
 
+@pytest.fixture(autouse=True)
+def auto_enable_custom_integrations(enable_custom_integrations):
+    yield
+
+
 async def test_init_entry(hass):
     """Test the sensor initialisation."""
     entry = MockConfigEntry(
@@ -175,6 +180,7 @@ async def test_flow_stops_creates_config_entry(m_metlink, hass):
         "description": ANY,
         "description_placeholders": None,
         "result": ANY,
+        "options": ANY,
         "data": {
             CONF_API_KEY: "dummy",
             CONF_STOPS: [
