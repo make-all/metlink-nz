@@ -8,10 +8,9 @@ then be displayed on your Home Assistant dashboard or used in automations.
 
 ## Installation
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
-The integration can be installed by adding the custom repository
-https://github.com/make-all/metlink-nz to HACS, and installing from there.
+The integration can be installed using HACS.
 If you prefer to instal manually, copy `custom_components/metlink` to your
 installation's `config/custom_components` directory.
 
