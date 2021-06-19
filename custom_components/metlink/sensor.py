@@ -215,8 +215,9 @@ class MetlinkSensor(Entity):
                 name = f"{departure[ATTR_SERVICE]} {dest}"
                 if num == 1:
                     # First record is the next departure, so use that
-                    # to set the state (departure time) and friendly name
-                    self._state = dt_util.parse_datetime(time)
+                    # to set the state (departure time)
+                    next_departure = dt_util.parse_datetime(time)
+                    self._state = time
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )
@@ -226,7 +227,7 @@ class MetlinkSensor(Entity):
                     # Dynamic polling of the API to get accurate predictions
                     # close to the time, without overloading the server when
                     # there is nothing pending:
-                    when = (self._state - now).total_seconds()
+                    when = (next_departure - now).total_seconds()
                     # Within 3 minutes, poll next call as well
                     if when < 180:
                         self.update_time = now
@@ -238,10 +239,10 @@ class MetlinkSensor(Entity):
                         self.update_time = now + timedelta(minutes=10)
                     # More than an hour away, don't poll until 1 hour before
                     else:
-                        self.update_time = self._state - timedelta(hours=1)
+                        self.update_time = next_departure - timedelta(hours=1)
 
                     _LOGGER.debug(
-                        f"Next departure at {self._state}, blocking updates until {self.update_time}"
+                        f"Next departure at {next_departure}, blocking updates until {self.update_time}"
                     )
                 else:
                     suffix = f"_{num}"
