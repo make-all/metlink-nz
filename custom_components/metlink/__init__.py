@@ -14,7 +14,7 @@ async def async_setup_entry(
 ) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
-    data = dict(entry.data)
+    data = {**entry.data, **entry.options}
     # Register an update listener to refresh when options are updated.
     update_listener = entry.add_update_listener(options_update_listener)
     data["unsub_options_update_listener"] = update_listener
