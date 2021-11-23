@@ -22,7 +22,7 @@ it will do anything.
 The integration can be added from the Integrations configuration screen.
 
 API keys can be obtained by registering on the
-[Metlink Developer Portal](https://opendata.metlink.org.nz/).  Be sure to subscribe to the "Metlink Open Data API". Currently this is the only API they offer, and is free, but is still unsubscribed by default.
+[Metroinfo Developer Portal](https://https://apidevelopers.metroinfo.co.nz/).  Be sure to subscribe to the "Siri Realtime" for free.
 
 If you prefer to configure using yaml instead of the UI, add something like
 the following to your `config/configuration.yaml`:
@@ -41,10 +41,9 @@ sensor:
 ```
 
 
-`stop_id` for Train and Cable Car stops is a 4 character alphabetic
-code, and for bus and ferry stops, is a 4 digit numeric code.
+`stop_id` bus stops, is a 5 digit numeric code.
 The IDs are on bus stop signs, or can be looked up on the
-[Metlink](https://metlink.org.nz) main web site.
+[Metroinfo](https://metroinfo.co.nz) main web site.
 
 
 If your stop is busy with multiple routes, you can filter by route and/or destination.  Currently exact matches are expected and only a single route or destination can be specified, though the destination does check the name as well as the stop id for a match, though some of the names that come through the API are abbreviated in ways that do not match the main web site so stop id will be more reliable.  The destination filter is only available on the final destination, not any intermediate stops.
@@ -60,4 +59,3 @@ there is more than one result being returned.
 If more than 1 result is requested in `num_departures`, the attributes
 will be suffixed with a number for second and subsequent departures.
 
-[![BuyMeCoffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jasonrumney)
