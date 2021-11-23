@@ -1,8 +1,8 @@
-# Metlink Wellington Transport for Home Assistant
+# Metroinfo Christchurch Transport for Home Assistant
 
 This is a custom component for Home Assistant which uses
-the [Metlink opendata API](https://opendata.metlink.org.nz/) to obtain
-realtime departure info for Greater Wellington public transport, which can
+the [Metroinfo API](https://apidevelopers.metroinfo.co.nz) to obtain
+realtime departure info for Greater Christchurch public transport, which can
 then be displayed on your Home Assistant dashboard or used in automations.
 
 
