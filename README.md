@@ -29,7 +29,7 @@ the following to your `config/configuration.yaml`:
 
 ```
 sensor:
-  - platform: metlink
+  - platform: Metroinfo
     api_key: abcdefg1234xzy
     stops:
       - stop_id: 9999
