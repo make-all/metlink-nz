@@ -17,8 +17,8 @@ import logging
 
 from homeassistant.const import CONTENT_TYPE_JSON
 
-BASE_URL = "https://api.opendata.metlink.org.nz/v1"
-PREDICTIONS_URL = BASE_URL + "/stop-predictions"
+BASE_URL = "https://apis.metroinfo.co.nz/rti/siri/v1"
+PREDICTIONS_URL = BASE_URL + "/sm"
 STOP_PARAM = "stop_id"
 APIKEY_HEADER = "X-Api-Key"
 
