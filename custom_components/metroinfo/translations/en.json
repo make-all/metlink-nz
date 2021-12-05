@@ -6,14 +6,14 @@
 	"step": {
 	    "user": {
 		"title": "Authentication",
-		"description": "Enter your Metlink API key.",
+		"description": "Enter your Metroinfo API key.",
 		"data": {
-		    "api_key": "Metlink API key"
+		    "api_key": "Metroinfo API key"
 		}
 	    },
 	    "stop": {
-		"title": "Add Metlink Stop",
-		"description": "Add a bus or train stop. Check the box to add another.",
+		"title": "Add Metroinfo Stop",
+		"description": "Add a bus stop. Check the box to add another.",
 		"data": {
 		    "stop_id": "4 digit or letter stop id.",
 		    "route": "(Optional) Route filter.",
