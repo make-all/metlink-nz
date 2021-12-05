@@ -1,12 +1,12 @@
 {
-    "codeowners": ["@make-all"],
+    "codeowners": ["@A-Vibes"],
     "config_flow": true,
     "dependencies": [],
-    "documentation": "https://github.com/make-all/metlink-nz/wiki",
-    "domain": "metlink",
+    "documentation": "https://github.com/A-Vibes/metroinfo-nz/wiki",
+    "domain": "Metroinfo",
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/make-all/metlink-nz/issues",
-    "name": "Metlink Wellington Transport",
+    "name": "Metroinfo Christchurch Transport",
     "requirements": ["isodate==0.6.0"],
     "version": "1.0.2"
 }
