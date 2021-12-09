@@ -10,6 +10,8 @@ then be displayed on your Home Assistant dashboard or used in automations.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
+Currently not working if you would like to help please send a pull request
+
 The integration can be installed using HACS.
 If you prefer to instal manually, copy `custom_components/metlink` to your
 installation's `config/custom_components` directory.
