@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DOMAIN = "metlink"
-ATTRIBUTION = "Data provided by Greater Wellington Regional Council"
+DOMAIN = "Metroinfo"
+ATTRIBUTION = "Data provided by Environment Canterbury Regional Council"
 
 CONF_STOPS = "stops"
-CONF_STOP_ID = "stop_id"
+CONF_CODE = "stop_code"
 CONF_DEST = "destination"
 CONF_ROUTE = "route"
 CONF_NUM_DEPARTURES = "num_departures"
