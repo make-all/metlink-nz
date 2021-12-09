@@ -17,9 +17,8 @@ import logging
 
 from homeassistant.const import CONTENT_TYPE_JSON
 
-BASE_URL = "https://apis.metroinfo.co.nz/rti/siri/v1"
-PREDICTIONS_URL = BASE_URL + "/sm"
-STOP_PARAM = "stop_id"
+BASE_URL = "https://apis.metroinfo.co.nz/rti/siri/v1/sm?stopcode="
+STOP_CODE = "stop_code"
 APIKEY_HEADER = "X-Api-Key"
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +30,7 @@ class Metlink(object):
         interface to Metlink API.
 
         Args:
-          apikey (str) : The API key registered at opendata.metlink.org.nz
+          apikey (str) : The API key registered at https://apidevelopers.metroinfo.co.nz
         """
         self._session = session
         self._key = apikey
@@ -39,7 +38,7 @@ class Metlink(object):
     async def get_predictions(self, stop_id):
         """Get arrival/departure predictions for the specified stop."""
         headers = {"Accept": CONTENT_TYPE_JSON, APIKEY_HEADER: self._key}
-        query = {STOP_PARAM: stop_id}
+        query = {STOP_PARAM: stop_code}
         _LOGGER.debug(f"Metlink request for {stop_id}")
         async with self._session.get(
             PREDICTIONS_URL,
