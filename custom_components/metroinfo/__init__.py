@@ -1,4 +1,4 @@
-"""Metlink Wellington Transport integration."""
+"""Metroinfo Wellington Transport integration."""
 import asyncio
 import logging
 
@@ -59,7 +59,7 @@ async def async_unload_entry(
 
 
 async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
-    """Setup the Metlink component from yaml configuration."""
+    """Setup the Metroinfo component from yaml configuration."""
     _LOGGER.debug("Setting up from YAML config")
     hass.data.setdefault(DOMAIN, {})
     return True

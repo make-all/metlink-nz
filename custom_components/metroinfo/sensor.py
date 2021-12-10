@@ -1,4 +1,4 @@
-"""Sensor platform for Metlink departure info."""
+"""Sensor platform for Metroinfo departure info."""
 # Copyright 2021 Jason Rumney
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ import homeassistant.util.dt as dt_util
 from isodate import parse_duration
 import voluptuous as vol
 
-from .MetlinkAPI import Metlink
+from .MetroinfoAPI import Metroinfo
 from .const import (
     ATTR_ACCESSIBLE,
     ATTR_AIMED,
@@ -47,10 +47,11 @@ from .const import (
     ATTR_STOP,
     ATTR_STOP_NAME,
     ATTRIBUTION,
+    CONF_CODE,
     CONF_DEST,
     CONF_NUM_DEPARTURES,
     CONF_ROUTE,
-    CONF_STOP_ID,
+    CONF_ROUTE,
     CONF_STOPS,
     DOMAIN,
 )
@@ -62,7 +63,7 @@ SCAN_INTERVAL = timedelta(seconds=30)
 
 STOP_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_STOP_ID): cv.string,
+        vol.Required(CONF_ROUTE): cv.string,
         vol.Optional(CONF_ROUTE): cv.string,
         vol.Optional(CONF_DEST): cv.string,
         vol.Optional(CONF_NUM_DEPARTURES): cv.positive_int,
@@ -77,7 +78,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 DEFAULT_ICON = "mdi:bus"
-OPERATOR_ICONS = {"RAIL": "mdi:train", "EBYW": "mdi:ferry", "WCCL": "mdi:gondola"}
 # By default, status is returned as null.  Follow the behaviour of signs and
 # call this "sched", meaning scheduled with no realtime status
 DEFAULT_STATUS = "sched"
@@ -89,15 +89,15 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Setup sensors from a config entry created in the integrations UI."""
-    _LOGGER.info("Setting up Metlink from ConfigEntry")
+    _LOGGER.info("Setting up Metroinfo from ConfigEntry")
     config = hass.data[DOMAIN][config_entry.entry_id]
     # Update to include new stops and remove those that have been deselected
     if config_entry.options:
         _LOGGER.info(f"Updating config from {config_entry.options}")
         config.update(config_entry.options)
     session = async_get_clientsession(hass)
-    metlink = Metlink(session, config[CONF_API_KEY])
-    sensors = [MetlinkSensor(metlink, stop) for stop in config[CONF_STOPS]]
+    metroinfo = Metroinfo(session, config[CONF_API_KEY])
+    sensors = [MetroinfoSensor(Metroinfo, stop) for stop in config[CONF_STOPS]]
     async_add_entities(sensors, update_before_add=True)
 
 
@@ -108,10 +108,10 @@ async def async_setup_platform(
     discovery_info: Optional[DiscoveryInfoType] = None,
 ) -> None:
     """Set up the sensor platform."""
-    _LOGGER.info("Setting up Metlink platform.")
+    _LOGGER.info("Setting up Metroinfo platform.")
     session = async_get_clientsession(hass)
-    metlink = Metlink(session, config[CONF_API_KEY])
-    sensors = [MetlinkSensor(metlink, stop) for stop in config[CONF_STOPS]]
+    metroinfo = Metroinfo(session, config[CONF_API_KEY])
+    sensors = [MetroinfoSensor(metroinfo, stop) for stop in config[CONF_STOPS]]
     async_add_entities(sensors, update_before_add=True)
 
 
@@ -119,8 +119,8 @@ def slug(text: str):
     return "_".join(re.split(r'["#$%&+,/:;=?@\[\\\]^`{|}~\'\s]+', text))
 
 
-def metlink_unique_id(d: Dict):
-    uid = "metlink_" + d["stop_id"]
+def metroinfo_unique_id(d: Dict):
+    uid = "metroinfo_" + d["stop_id"]
     if "route_filter" in d and d["route_filter"] not in (None, ""):
         uid = uid + "_r" + slug(d["route_filter"])
     if "dest_filter" in d and d["dest_filter"] not in (None, ""):
@@ -128,13 +128,13 @@ def metlink_unique_id(d: Dict):
     return uid
 
 
-class MetlinkSensor(Entity):
-    """Representation of a Metlink Stop sensor."""
+class MetroinfoSensor(Entity):
+    """Representation of a Metroinfo Stop sensor."""
 
-    def __init__(self, metlink: Metlink, stop: Dict[str, str]):
+    def __init__(self, metroinfo: Metroinfo, stop: Dict[str, str]):
         super().__init__()
-        self.metlink = metlink
-        self.stop_id = stop[CONF_STOP_ID]
+        self.metroinfo = metroinfo
+        self.stop_id = stop[CONF_CODE]
         self.route_filter = stop.get(CONF_ROUTE, None)
         self.dest_filter = stop.get(CONF_DEST, None)
         self.num_departures = stop.get(CONF_NUM_DEPARTURES, 1)
@@ -144,13 +144,13 @@ class MetlinkSensor(Entity):
             ATTR_STOP: self.stop_id,
             ATTR_ATTRIBUTION: ATTRIBUTION,
         }
-        self._name = "Metlink " + self.stop_id
-        self.uid = metlink_unique_id(self.__dict__)
+        self._name = "Metroinfo " + self.stop_id
+        self.uid = metroinfo_unique_id(self.__dict__)
         self._state = None
         self._available = True
         self._icon = DEFAULT_ICON
         self.update_time = dt_util.as_local(dt_util.utcnow())
-        _LOGGER.debug(f"Created Metlink sensor {self.uid}.")
+        _LOGGER.debug(f"Created Metroinfo sensor {self.uid}.")
 
     @property
     def name(self) -> str:
@@ -192,7 +192,7 @@ class MetlinkSensor(Entity):
 
         num = 0
         try:
-            data = await self.metlink.get_predictions(self.stop_id)
+            data = await self.metroinfo.get_predictions(self.stop_id)
 
             for departure in data[ATTR_DEPARTURES]:
                 dest = departure[ATTR_DESTINATION].get(ATTR_NAME)
@@ -296,5 +296,5 @@ class MetlinkSensor(Entity):
         except BaseException:
             self._available = False
             _LOGGER.exception(
-                "Error retrieving data from Metlink API for sensor %s.", self.name
+                "Error retrieving data from Metroinfo API for sensor %s.", self.name
             )

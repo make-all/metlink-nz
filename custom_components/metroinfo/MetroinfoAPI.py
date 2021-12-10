@@ -1,4 +1,4 @@
-"""Interface to the metlink web service."""
+"""Interface to the Metroinfo web service."""
 # Copyright 2021 Jason Rumney
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,10 +24,10 @@ APIKEY_HEADER = "X-Api-Key"
 _LOGGER = logging.getLogger(__name__)
 
 
-class Metlink(object):
+class Metroinfo(object):
     def __init__(self, session, apikey):
         """
-        interface to Metlink API.
+        interface to Metroinfo API.
 
         Args:
           apikey (str) : The API key registered at https://apidevelopers.metroinfo.co.nz
@@ -39,7 +39,7 @@ class Metlink(object):
         """Get arrival/departure predictions for the specified stop."""
         headers = {"Accept": CONTENT_TYPE_JSON, APIKEY_HEADER: self._key}
         query = {STOP_PARAM: stop_code}
-        _LOGGER.debug(f"Metlink request for {stop_id}")
+        _LOGGER.debug(f"Metroinfo request for {stop_id}")
         async with self._session.get(
             PREDICTIONS_URL,
             params=query,

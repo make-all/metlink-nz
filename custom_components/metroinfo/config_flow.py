@@ -1,4 +1,4 @@
-"""Config flow for Metlink departure info."""
+"""Config flow for Metroinfo departure info."""
 # Copyright 2021 Jason Rumney
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ from homeassistant.helpers.entity_registry import (
 )
 import voluptuous as vol
 
-from .MetlinkAPI import Metlink
+from .MetroinfoAPI import Metroinfo
 from .const import (
     CONF_DEST,
     CONF_NUM_DEPARTURES,
@@ -38,7 +38,7 @@ from .const import (
     CONF_STOPS,
     DOMAIN,
 )
-from .sensor import metlink_unique_id
+from .sensor import metroinfo_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,22 +55,22 @@ STOP_SCHEMA = vol.Schema(
 
 
 async def validate_auth(apikey: str, hass: core.HomeAssistant) -> None:
-    """Validate a Metlink API key.
+    """Validate a Metroinfo API key.
 
     Raises a ValueError if the api key is invalid.
     """
     session = async_get_clientsession(hass)
-    metlink = Metlink(session, apikey)
+    metroinfo = Metroinfo(session, apikey)
 
     try:
-        await metlink.get_predictions("9999")
+        await metroinfo.get_predictions("9999")
     except ClientResponseError:
-        _LOGGER.error("Metlink API Key rejected by server")
+        _LOGGER.error("Metroinfo API Key rejected by server")
         raise ValueError
 
 
-class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Metlink config flow."""
+class MetroinfoNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Metroinfo config flow."""
 
     async def async_step_user(self, user_input: Dict[str, Any] = None):
         """Invoked when a user initiates a flow from the user interface."""
@@ -117,7 +117,7 @@ class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # User is done adding stops, now create the config entry
             n_stops = len(self.data[CONF_STOPS])
             _LOGGER.info(f"Saving config with {n_stops} stops.")
-            return self.async_create_entry(title="Metlink", data=self.data)
+            return self.async_create_entry(title="Metroinfo", data=self.data)
 
         _LOGGER.debug("Showing stop configuration form")
         return self.async_show_form(
@@ -168,7 +168,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 entry_stop = entry.unique_id
                 _LOGGER.info(f"Removing stop {entry_stop}")
                 updated_stops = [
-                    e for e in updated_stops if metlink_unique_id(e) != entry_stop
+                    e for e in updated_stops if metroinfo_unique_id(e) != entry_stop
                 ]
 
             _LOGGER.debug(f"Stops after removals: {updated_stops}")

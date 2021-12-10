@@ -13,7 +13,7 @@ then be displayed on your Home Assistant dashboard or used in automations.
 Currently not working if you would like to help please send a pull request
 
 The integration can be installed using HACS.
-If you prefer to instal manually, copy `custom_components/metlink` to your
+If you prefer to instal manually, copy `custom_components/metroinfo` to your
 installation's `config/custom_components` directory.
 
 ### Configuration

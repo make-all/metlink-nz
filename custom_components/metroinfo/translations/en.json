@@ -1,28 +1,28 @@
 {
     "config": {
-	"error": {
-	    "auth": "The api key provided is not valid. Check you have subscribed to the Metlink Open Data API."
-	},
-	"step": {
-	    "user": {
-		"title": "Authentication",
-		"description": "Enter your Metroinfo API key.",
-		"data": {
-		    "api_key": "Metroinfo API key"
-		}
-	    },
-	    "stop": {
-		"title": "Add Metroinfo Stop",
-		"description": "Add a bus stop. Check the box to add another.",
-		"data": {
-		    "stop_id": "4 digit or letter stop id.",
-		    "route": "(Optional) Route filter.",
-		    "destination": "(Optional} Final destination filter.",
-		    "num_departures": "Number of departures to track. (Default: 1)",
-		    "add_another": "Add another stop?"
-		}
-	    }
-	}
+      "error": {
+        "auth": "The api key provided is not valid. Check you have subscribed to the Metroinfo SIRI Realtime API."
+      },
+      "step": {
+        "user": {
+          "title": "Authentication",
+          "description": "Enter your Metroinfo API key.",
+          "data": {
+            "api_key": "Metroinfo API key"
+          }
+        },
+        "stop": {
+          "title": "Add Metroinfo Stop",
+          "description": "Add a bus stop. Check the box to add another.",
+          "data": {
+            "stop_id": "4 digit or letter stop id.",
+            "route": "(Optional) Route filter.",
+            "destination": "(Optional} Final destination filter.",
+            "num_departures": "Number of departures to track. (Default: 1)",
+            "add_another": "Add another stop?"
+          }
+        }
+      }
     },
     "options": {
 	"step": {
