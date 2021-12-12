@@ -138,7 +138,7 @@ async def test_async_update_success(hass, aioclient_mock):
     }
 
     assert expected == sensor.attrs
-    assert expected == sensor.device_state_attributes
+    assert expected == sensor.extra_state_attributes
     assert sensor.available is True
     assert sensor.icon == "mdi:train"
     assert sensor.name == "Metlink WELL"
@@ -213,7 +213,7 @@ async def test_async_update_multiple(hass, aioclient_mock):
     }
 
     assert expected == sensor.attrs
-    assert expected == sensor.device_state_attributes
+    assert expected == sensor.extra_state_attributes
     assert sensor.available is True
     assert sensor.icon == "mdi:train"
     assert sensor.name == "Metlink WELL"
