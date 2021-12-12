@@ -19,7 +19,7 @@ import re
 from typing import Any, Callable, Dict, Optional
 
 from homeassistant import config_entries, core
-from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass
 from homeassistant.const import ATTR_ATTRIBUTION, CONF_API_KEY, DEVICE_CLASS_TIMESTAMP
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
@@ -178,7 +178,7 @@ class MetlinkSensor(Entity):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_TIMESTAMP
+        return SensorDeviceClass.TIMESTAMP
 
     @property
     def device_state_attributes(self) -> Dict[str, Any]:
@@ -217,7 +217,7 @@ class MetlinkSensor(Entity):
                     # First record is the next departure, so use that
                     # to set the state (departure time)
                     next_departure = dt_util.parse_datetime(time)
-                    self._state = time
+                    self._state = next_departure
                     self._icon = OPERATOR_ICONS.get(
                         departure[ATTR_OPERATOR], DEFAULT_ICON
                     )

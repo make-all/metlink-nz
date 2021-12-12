@@ -143,7 +143,7 @@ async def test_async_update_success(hass, aioclient_mock):
     assert sensor.icon == "mdi:train"
     assert sensor.name == "Metlink WELL"
     assert sensor.unique_id == "metlink_WELL_rKPL_dPorirua"
-    assert sensor.state == expected["departure"]
+    assert sensor.state == dt_util.parse_datetime(expected["departure"])
 
 
 async def test_async_update_failed():
@@ -218,7 +218,7 @@ async def test_async_update_multiple(hass, aioclient_mock):
     assert sensor.icon == "mdi:train"
     assert sensor.name == "Metlink WELL"
     assert sensor.unique_id == "metlink_WELL_rKPL"
-    assert sensor.state == expected["departure"]
+    assert sensor.state == dt_util.parse_datetime(expected["departure"])
 
 
 def test_slug():
