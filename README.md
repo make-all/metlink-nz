@@ -22,7 +22,7 @@ it will do anything.
 The integration can be added from the Integrations configuration screen.
 
 API keys can be obtained by registering on the
-[Metlink Developer Portal](https://opendata.metlink.org.nz/).  Be sure to subscribe to the "Metlink Open Data API". Currently this is the only API they offer, and is free, but is still unsubscribed by default.
+[Metlink Developer Portal](https://opendata.metlink.org.nz/).  **Be sure to subscribe to the "Metlink Open Data API".** Currently this is the only API they offer, and is free, but is still unsubscribed by default.
 
 If you prefer to configure using yaml instead of the UI, add something like
 the following to your `config/configuration.yaml`:
