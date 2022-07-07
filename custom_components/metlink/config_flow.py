@@ -148,10 +148,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         errors: Dict[str, str] = {}
         all_stops = {e.entity_id: e.original_name for e in entries}
         stop_map = {e.entity_id: e for e in entries}
+        # Merge initial config and later modifications
+        config = {**self.config_entry.data, **self.config_entry.options}
 
         if user_input is not None:
             _LOGGER.debug(f"Starting reconfiguration for {user_input}")
-            updated_stops = deepcopy(self.config_entry.data[CONF_STOPS])
+            updated_stops = deepcopy(config.get(CONF_STOPS))
             _LOGGER.debug(f"Stops before reconfiguration: {updated_stops}")
 
             # Remove unchecked stops.
