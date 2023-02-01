@@ -15,7 +15,7 @@
 		"title": "Add Metlink Stop",
 		"description": "Add a bus or train stop. Check the box to add another.",
 		"data": {
-		    "stop_id": "4 digit or letter stop id.",
+		    "stop_id": "3 to 4 digit or letter stop id.",
 		    "route": "(Optional) Route filter.",
 		    "destination": "(Optional} Final destination filter.",
 		    "num_departures": "Number of departures to track. (Default: 1)",
@@ -31,7 +31,7 @@
 		"description": "Add or remove stops.",
 		"data": {
 		    "stops": "Existing stops (unselect to remove)",
-		    "stop_id": "4 digit or letter stop id.",
+		    "stop_id": "3 to 4 digit or letter stop id.",
 		    "route": "(Optional) Route filter.",
 		    "destination": "(Optional) Final destination filter.",
 		    "num_departures": "Number of departures to track. (Default: 1)"
