@@ -5,6 +5,7 @@ the [Metlink opendata API](https://opendata.metlink.org.nz/) to obtain
 realtime departure info for Greater Wellington public transport, which can
 then be displayed on your Home Assistant dashboard or used in automations.
 
+[![BuyMeCoffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jasonrumney)
 
 ## Installation
 
@@ -44,4 +45,11 @@ there is more than one result being returned.
 If more than 1 result is requested in `num_departures`, the attributes
 will be suffixed with a number for second and subsequent departures.
 
-[![BuyMeCoffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jasonrumney)
+# Acknowledgements
+
+Thanks to Greater Wellington Regional Council for making their data available
+via an open API, and the following users who have submitted improvements to
+this Home Assistant integration.
+
+- [messum](https://github.com/messum) for identifying that train stations are not always 4 characters, and fixing that.
+- [Me-sudoer](https://github.com/Me-sudoer) for finding an issue with the HA iOS app's different handling of timestamps than web and Android.
