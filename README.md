@@ -25,7 +25,7 @@ API keys can be obtained by registering on the
 [Metlink Developer Portal](https://opendata.metlink.org.nz/).  **Be sure to subscribe to the "Metlink Open Data API".** Currently this is the only API they offer, and is free, but is still unsubscribed by default.
 
 
-`stop_id` for Train and Cable Car stops is a 4 character alphabetic
+`stop_id` for Train and Cable Car stops is a 3 to 4 character alphabetic
 code, and for bus and ferry stops, is a 4 digit numeric code.
 The IDs are on bus stop signs, or can be looked up on the
 [Metlink](https://metlink.org.nz) main web site.
