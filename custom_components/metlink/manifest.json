@@ -1,12 +1,12 @@
 {
+    "domain": "metlink",
+    "name": "Metlink Wellington Transport",
     "codeowners": ["@make-all"],
     "config_flow": true,
     "dependencies": [],
     "documentation": "https://github.com/make-all/metlink-nz/wiki",
-    "domain": "metlink",
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/make-all/metlink-nz/issues",
-    "name": "Metlink Wellington Transport",
     "requirements": ["isodate~=0.6.1"],
     "version": "1.0.6"
 }
