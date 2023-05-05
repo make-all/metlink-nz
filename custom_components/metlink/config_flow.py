@@ -25,7 +25,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_registry import (
     async_entries_for_config_entry,
-    async_get_registry,
+    async_get,
 )
 import voluptuous as vol
 
@@ -141,7 +141,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         """Manage the options for the component."""
-        entity_registry = await async_get_registry(self.hass)
+        entity_registry = await async_get(self.hass)
         entries = async_entries_for_config_entry(
             entity_registry, self.config_entry.entry_id
         )
