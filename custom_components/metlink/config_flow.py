@@ -141,7 +141,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         """Manage the options for the component."""
-        entity_registry = await async_get(self.hass)
+        entity_registry = async_get(self.hass)
         entries = async_entries_for_config_entry(
             entity_registry, self.config_entry.entry_id
         )
