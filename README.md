@@ -38,7 +38,7 @@ If your stop is busy with multiple routes, you can filter by route and/or destin
 Each stop will create a sensor in Home Assistant, which will return the next departure time as its status.
 
 It will also return attributes for departure time, service, service
-name, destination name, stop id for the destination, and status.  The
+name, destination name, stop id for the destination, status and more.  The
 duplication of departure time in the attributes makes more sense when
 there is more than one result being returned.
 

@@ -40,12 +40,14 @@ from .const import (
     ATTR_DESTINATION,
     ATTR_DESTINATION_ID,
     ATTR_EXPECTED,
+    ATTR_MONITORED,
     ATTR_NAME,
     ATTR_OPERATOR,
     ATTR_SERVICE,
     ATTR_STATUS,
     ATTR_STOP,
     ATTR_STOP_NAME,
+    ATTR_VEHICLE,
     ATTRIBUTION,
     CONF_DEST,
     CONF_NUM_DEPARTURES,
@@ -269,6 +271,9 @@ class MetlinkSensor(Entity):
                 self.attrs[ATTR_DELAY + suffix] = int(
                     parse_duration(departure[ATTR_DELAY]) / timedelta(minutes=1)
                 )
+                self.attrs[ATTR_MONITORED + suffix] = departure[ATTR_MONITORED]
+                self.attrs[ATTR_VEHICLE + suffix] = departure[ATTR_VEHICLE]
+
             self._available = True
             # Clear out the unused slots
             for i in range(num, self.num_departures):
