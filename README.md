@@ -45,6 +45,8 @@ there is more than one result being returned.
 If more than 1 result is requested in `num_departures`, the attributes
 will be suffixed with a number for second and subsequent departures.
 
+Stop IDs sometimes behave differently, E.g. if your start stop ID is NAEN and the final destination is WELL, it doesn't work but it works with WELL1 as the final destination. To ensure that you have the correct final destination Stop ID, create a sensor without a final destination and get the final destination which shows up in the attributes.
+
 # Acknowledgements
 
 Thanks to Greater Wellington Regional Council for making their data available
