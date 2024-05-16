@@ -33,20 +33,41 @@ from .MetlinkAPI import Metlink
 from .const import (
     ATTR_ACCESSIBLE,
     ATTR_AIMED,
+    ATTR_ALERT_CAUSE,
+    ATTR_ALERT_COUNT,
+    ATTR_ALERT_DESCRIPTION,
+    ATTR_ALERT_EFFECT,
+    ATTR_ALERT_HEADER,
+    ATTR_ALERT_SEVERITY_LEVEL,
+    ATTR_ALERT_URL,
+    ATTR_ALERT,
+    ATTR_CAUSE,
     ATTR_DELAY,
     ATTR_DEPARTURE,
     ATTR_DEPARTURES,
+    ATTR_DESCRIPTION_TEXT,
     ATTR_DESCRIPTION,
-    ATTR_DESTINATION,
     ATTR_DESTINATION_ID,
+    ATTR_DESTINATION,
+    ATTR_EFFECT,
+    ATTR_ENTITY,
     ATTR_EXPECTED,
+    ATTR_HEADER_TEXT,
+    ATTR_INFORMED_ENTITY,
+    ATTR_LANGUAGE,
     ATTR_MONITORED,
     ATTR_NAME,
     ATTR_OPERATOR,
     ATTR_SERVICE,
+    ATTR_SEVERITY_LEVEL,
     ATTR_STATUS,
-    ATTR_STOP,
     ATTR_STOP_NAME,
+    ATTR_STOP,
+    ATTR_TEXT,
+    ATTR_TRANSLATION,
+    ATTR_TRIP_ID,
+    ATTR_TRIP,
+    ATTR_URL,
     ATTR_VEHICLE,
     ATTRIBUTION,
     CONF_DEST,
@@ -55,6 +76,7 @@ from .const import (
     CONF_STOP_ID,
     CONF_STOPS,
     DOMAIN,
+    LANG,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -129,6 +151,12 @@ def metlink_unique_id(d: Dict):
         uid = uid + "_d" + slug(d["dest_filter"])
     return uid
 
+def get_translation(translations: Dict) -> str:
+    for translation in translations.get(ATTR_TRANSLATION, {}):
+        if translation.get(ATTR_LANGUAGE) == LANG:
+            return translation.get(ATTR_TEXT, "")
+
+    return ""
 
 class MetlinkSensor(Entity):
     """Representation of a Metlink Stop sensor."""
@@ -194,6 +222,7 @@ class MetlinkSensor(Entity):
 
         num = 0
         try:
+            alerts = await self.metlink.get_service_alerts()
             data = await self.metlink.get_predictions(self.stop_id)
 
             for departure in data[ATTR_DEPARTURES]:
@@ -213,6 +242,16 @@ class MetlinkSensor(Entity):
                 time = departure[ATTR_DEPARTURE].get(ATTR_EXPECTED)
                 if time is None:
                     time = departure[ATTR_DEPARTURE].get(ATTR_AIMED)
+
+                # enumerate the service alerts to find any that are relevant to the trip.
+                trip_alerts = []
+                if ATTR_TRIP_ID in departure:
+                    trip_id = departure[ATTR_TRIP_ID]
+                    for entity in alerts[ATTR_ENTITY]:
+                        alert = entity[ATTR_ALERT]
+                        informed_entities = alert[ATTR_INFORMED_ENTITY]
+                        if any(informed_entity.get(ATTR_TRIP, {}).get(ATTR_TRIP_ID) == trip_id for informed_entity in informed_entities):
+                            trip_alerts.append(alert)
 
                 name = f"{departure[ATTR_SERVICE]} {dest}"
                 if num == 1:
@@ -274,6 +313,44 @@ class MetlinkSensor(Entity):
                 self.attrs[ATTR_MONITORED + suffix] = departure[ATTR_MONITORED]
                 self.attrs[ATTR_VEHICLE + suffix] = departure[ATTR_VEHICLE]
 
+                # Trip alerts
+                self.attrs[ATTR_ALERT_COUNT + suffix] = len(trip_alerts)
+                num_alert = 0
+                for alert in trip_alerts:
+                    alert_suffix = f"_{num_alert}"
+
+                    self.attrs[ATTR_ALERT_HEADER + suffix + alert_suffix] = get_translation(alert.get(ATTR_HEADER_TEXT, {}))
+                    self.attrs[ATTR_ALERT_DESCRIPTION + suffix + alert_suffix] = get_translation(alert.get(ATTR_DESCRIPTION_TEXT, {}))
+                    self.attrs[ATTR_ALERT_URL + suffix + alert_suffix] = get_translation(alert.get(ATTR_URL, {}))
+                    self.attrs[ATTR_ALERT_CAUSE + suffix + alert_suffix] = alert.get(ATTR_CAUSE, "")
+                    self.attrs[ATTR_ALERT_EFFECT + suffix + alert_suffix] = alert.get(ATTR_EFFECT, "")
+                    self.attrs[ATTR_ALERT_SEVERITY_LEVEL + suffix + alert_suffix] = alert.get(ATTR_SEVERITY_LEVEL, "")
+
+                    num_alert += 1
+
+                # Clear out old alerts
+                to_remove = []
+                for alert_prefix in [
+                    ATTR_ALERT_HEADER,
+                    ATTR_ALERT_DESCRIPTION,
+                    ATTR_ALERT_URL,
+                    ATTR_ALERT_CAUSE,
+                    ATTR_ALERT_EFFECT,
+                    ATTR_ALERT_SEVERITY_LEVEL,
+                ]:
+                    prefix = f"{alert_prefix}{suffix}_"
+                    for attr in self.attrs:
+                        if attr.startswith(prefix):
+                            try:
+                                if int(attr.removeprefix(prefix)) >= len(trip_alerts):
+                                    # we have an attribute outside of the range of the current alerts
+                                    to_remove.append(attr)
+                            except ValueError as ex:
+                                pass
+
+                for attr in to_remove:
+                    self.attrs.pop(attr)
+
             self._available = True
             # Clear out the unused slots
             for i in range(num, self.num_departures):
@@ -295,6 +372,23 @@ class MetlinkSensor(Entity):
                     self.attrs.pop(ATTR_DESTINATION_ID + suffix, None)
                     self.attrs.pop(ATTR_ACCESSIBLE + suffix, None)
                     self.attrs.pop(ATTR_DELAY + suffix, None)
+                    self.attrs.pop(ATTR_ALERT_COUNT + suffix, None)
+                    to_remove = []
+                    for alert_prefix in [
+                        ATTR_ALERT_HEADER,
+                        ATTR_ALERT_DESCRIPTION,
+                        ATTR_ALERT_URL,
+                        ATTR_ALERT_CAUSE,
+                        ATTR_ALERT_EFFECT,
+                        ATTR_ALERT_SEVERITY_LEVEL,
+                    ]:
+                        prefix = f"{alert_prefix}{suffix}"
+                        for attr in self.attrs:
+                            if attr.startswith(prefix):
+                                to_remove.append(attr)
+
+                    for attr in to_remove:
+                        self.attrs.pop(attr)
 
         # set the sensor to unavailable on errors, but leave previous data in
         # attributes, so temporary network issues do not cause glitches.

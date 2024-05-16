@@ -19,6 +19,7 @@ from homeassistant.const import CONTENT_TYPE_JSON
 
 BASE_URL = "https://api.opendata.metlink.org.nz/v1"
 PREDICTIONS_URL = BASE_URL + "/stop-predictions"
+SERVICE_ALERTS_URL = BASE_URL + "/gtfs-rt/servicealerts"
 STOP_PARAM = "stop_id"
 APIKEY_HEADER = "X-Api-Key"
 
@@ -44,6 +45,17 @@ class Metlink(object):
         async with self._session.get(
             PREDICTIONS_URL,
             params=query,
+            headers=headers,
+        ) as r:
+            r.raise_for_status()
+            return await r.json()
+
+    async def get_service_alerts(self):
+        """Information about unforeseen events affecting routes, stops, or the network."""
+        headers = {"Accept": CONTENT_TYPE_JSON, APIKEY_HEADER: self._key}
+        _LOGGER.debug(f"Metlink request for service alerts")
+        async with self._session.get(
+            SERVICE_ALERTS_URL,
             headers=headers,
         ) as r:
             r.raise_for_status()
