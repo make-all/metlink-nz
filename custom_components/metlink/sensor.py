@@ -324,6 +324,7 @@ class MetlinkSensor(Entity):
                     self.attrs[ATTR_ALERT_URL + suffix + alert_suffix] = get_translation(alert.get(ATTR_URL, {}))
                     self.attrs[ATTR_ALERT_CAUSE + suffix + alert_suffix] = alert.get(ATTR_CAUSE, "")
                     self.attrs[ATTR_ALERT_EFFECT + suffix + alert_suffix] = alert.get(ATTR_EFFECT, "")
+                    self.attrs[ATTR_ALERT_SEVERITY_LEVEL + suffix + alert_suffix] = alert.get(ATTR_SEVERITY_LEVEL, "")
 
                     num_alert += 1
 
@@ -335,6 +336,7 @@ class MetlinkSensor(Entity):
                     ATTR_ALERT_URL,
                     ATTR_ALERT_CAUSE,
                     ATTR_ALERT_EFFECT,
+                    ATTR_ALERT_SEVERITY_LEVEL,
                 ]:
                     prefix = f"{alert_prefix}{suffix}_"
                     for attr in self.attrs:
@@ -378,6 +380,7 @@ class MetlinkSensor(Entity):
                         ATTR_ALERT_URL,
                         ATTR_ALERT_CAUSE,
                         ATTR_ALERT_EFFECT,
+                        ATTR_ALERT_SEVERITY_LEVEL,
                     ]:
                         prefix = f"{alert_prefix}{suffix}"
                         for attr in self.attrs:
