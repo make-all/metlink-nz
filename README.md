@@ -38,9 +38,9 @@ If your stop is busy with multiple routes, you can filter by route and/or destin
 Each stop will create a sensor in Home Assistant, which will return the next departure time as its status.
 
 It will also return attributes for departure time, service, service
-name, destination name, stop id for the destination, status and more.  The
-duplication of departure time in the attributes makes more sense when
-there is more than one result being returned.
+name, destination name, stop id for the destination, status, service alerts
+and more.  The duplication of departure time in the attributes makes more
+sense when there is more than one result being returned.
 
 If more than 1 result is requested in `num_departures`, the attributes
 will be suffixed with a number for second and subsequent departures.
@@ -53,5 +53,6 @@ Thanks to Greater Wellington Regional Council for making their data available
 via an open API, and the following users who have submitted improvements to
 this Home Assistant integration.
 
-- [messum](https://github.com/messum) for identifying that train stations are not always 4 characters, and fixing that.
+- [messum](https://github.com/messum) for identifying that train stations are not always 4 characters, and fixing that, and contributing documentation to advise on the new train station naming complexity where major stations have numbered source/destination ids.
 - [Me-sudoer](https://github.com/Me-sudoer) for finding an issue with the HA iOS app's different handling of timestamps than web and Android.
+- [meringu](https://github.com/meringu) for contributing service alert support.
