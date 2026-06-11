@@ -32,7 +32,7 @@ The IDs are on bus stop signs, or can be looked up on the
 [Metlink](https://metlink.org.nz) main web site.
 
 
-If your stop is busy with multiple routes, you can filter by route and/or destination.  Currently exact matches are expected and only a single route or destination can be specified, though the destination does check the name as well as the stop id for a match, but some of the names that come through the API are abbreviated in ways that do not match the main web site so stop id will be more reliable.  The destination filter is only available on the final destination, not any intermediate stops.
+If your stop is busy with multiple routes, you can filter by route and/or destination. Route filters are exact matches against `service_id`, and can be provided as a single value (for example `KPL`) or comma-separated values (for example `KPL,HVL`). Destination still supports a single value, and checks both destination name and stop id for a match, but some names coming through the API are abbreviated in ways that do not match the main web site, so stop id will be more reliable. The destination filter is only available on the final destination, not any intermediate stops.
 
 
 Each stop will create a sensor in Home Assistant, which will return the next departure time as its status.

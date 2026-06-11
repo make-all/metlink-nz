@@ -187,6 +187,44 @@ async def test_flow_stops_creates_config_entry(m_metlink_flow, m_metlink_sensor,
 
 
 @patch("custom_components.metlink.sensor.Metlink")
+@patch("custom_components.metlink.config_flow.Metlink")
+async def test_flow_stops_creates_config_entry_with_multi_route(
+    m_metlink_flow, m_metlink_sensor, hass
+):
+    """Test config entry creation accepts comma-separated route filters."""
+    m_instance = AsyncMock()
+    m_instance.get_predictions = AsyncMock()
+    m_instance.get_service_alerts = AsyncMock(return_value={"entity": []})
+    m_metlink_flow.return_value = m_instance
+    m_metlink_sensor.return_value = m_instance
+    config_flow.MetlinkNZConfigFlow.data = {
+        CONF_API_KEY: "dummy",
+        CONF_STOPS: [],
+    }
+    _result = await hass.config_entries.flow.async_init(
+        config_flow.DOMAIN, context={"source": "stop"}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        _result["flow_id"],
+        user_input={CONF_STOP_ID: "1111", CONF_ROUTE: "2,18,24"},
+    )
+
+    expected_data = {
+        CONF_API_KEY: "dummy",
+        CONF_STOPS: [
+            {
+                CONF_STOP_ID: "1111",
+                CONF_ROUTE: "2,18,24",
+                CONF_DEST: "",
+                CONF_NUM_DEPARTURES: 1,
+            }
+        ],
+    }
+    assert result["type"] == "create_entry"
+    assert result["data"] == expected_data
+
+
+@patch("custom_components.metlink.sensor.Metlink")
 async def test_options_flow_init(m_metlink, hass):
     """Test config flow options."""
     m_instance = AsyncMock()

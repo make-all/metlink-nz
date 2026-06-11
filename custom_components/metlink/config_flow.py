@@ -46,7 +46,7 @@ AUTH_SCHEMA = vol.Schema({vol.Required(CONF_API_KEY): cv.string})
 STOP_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_STOP_ID): vol.All(cv.string, vol.Length(min=3, max=4)),
-        vol.Optional(CONF_ROUTE, default=""): vol.All(cv.string, vol.Length(max=3)),
+        vol.Optional(CONF_ROUTE, default=""): cv.string,
         vol.Optional(CONF_DEST, default=""): cv.string,
         vol.Optional(CONF_NUM_DEPARTURES, default=1): cv.positive_int,
         vol.Optional("add_another", default=False): cv.boolean,
@@ -199,7 +199,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     cv.string, vol.Length(min=3, max=4)
                 ),
                 vol.Optional(CONF_ROUTE, default=""): vol.All(
-                    cv.string, vol.Length(max=3)
+                    cv.string
                 ),
                 vol.Optional(CONF_DEST, default=""): cv.string,
                 vol.Optional(CONF_NUM_DEPARTURES, default=1): cv.positive_int,

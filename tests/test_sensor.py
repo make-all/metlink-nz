@@ -25,7 +25,7 @@ from custom_components.metlink.const import (
     CONF_ROUTE,
     CONF_STOP_ID,
 )
-from custom_components.metlink.sensor import MetlinkSensor, slug
+from custom_components.metlink.sensor import MetlinkSensor, parse_route_filters, slug
 
 TEST_RESPONSE = [
     {
@@ -235,6 +235,30 @@ async def test_async_update_multiple(hass, aioclient_mock):
     assert sensor.name == "Metlink WELL"
     assert sensor.unique_id == "metlink_WELL_rKPL"
     assert sensor.state == dt_util.parse_datetime(expected["departure"])
+
+
+async def test_async_update_multiple_route_filter(hass, aioclient_mock):
+    """Tests that comma-separated route filters are supported."""
+    metlink = MagicMock()
+    metlink.get_predictions = AsyncMock(side_effect=TEST_RESPONSE)
+    metlink.get_service_alerts = AsyncMock(return_value={"entity": []})
+    sensor = MetlinkSensor(
+        metlink,
+        {CONF_STOP_ID: "WELL", CONF_ROUTE: " KPL, HVL ", CONF_NUM_DEPARTURES: 1},
+    )
+    await sensor.async_update()
+
+    assert sensor.available is True
+    assert sensor.attrs["service_id"] == "HVL"
+    assert sensor.attrs["description"] == "HVL UPPE-All stops"
+
+
+def test_parse_route_filters():
+    """Test route filter parser for comma-separated values."""
+    assert parse_route_filters(None) == set()
+    assert parse_route_filters("") == set()
+    assert parse_route_filters("KPL") == {"KPL"}
+    assert parse_route_filters(" KPL, HVL ,, ") == {"KPL", "HVL"}
 
 
 def test_slug():

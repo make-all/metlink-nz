@@ -143,6 +143,14 @@ def slug(text: str):
     return "_".join(re.split(r'["#$%&+,/:;=?@\[\\\]^`{|}~\'\s]+', text))
 
 
+def parse_route_filters(route_filter: Optional[str]) -> set[str]:
+    """Parse comma-separated route filter input into a set of route IDs."""
+    if route_filter in (None, ""):
+        return set()
+
+    return {route.strip() for route in route_filter.split(",") if route.strip()}
+
+
 def metlink_unique_id(d: Dict):
     uid = "metlink_" + d["stop_id"]
     if "route_filter" in d and d["route_filter"] not in (None, ""):
@@ -166,6 +174,7 @@ class MetlinkSensor(Entity):
         self.metlink = metlink
         self.stop_id = stop[CONF_STOP_ID]
         self.route_filter = stop.get(CONF_ROUTE, None)
+        self.route_filters = parse_route_filters(self.route_filter)
         self.dest_filter = stop.get(CONF_DEST, None)
         self.num_departures = stop.get(CONF_NUM_DEPARTURES, 1)
         if self.num_departures < 1:
@@ -227,8 +236,8 @@ class MetlinkSensor(Entity):
 
             for departure in data[ATTR_DEPARTURES]:
                 dest = departure[ATTR_DESTINATION].get(ATTR_NAME)
-                if self.route_filter not in (None, ""):
-                    if departure[ATTR_SERVICE] != self.route_filter:
+                if self.route_filters:
+                    if departure[ATTR_SERVICE] not in self.route_filters:
                         continue
                 if self.dest_filter not in (None, ""):
                     if (
