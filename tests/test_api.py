@@ -81,6 +81,43 @@ async def test_rate_limit_uses_retry_after(aioclient_mock):
     assert aioclient_mock.call_count == 1
 
 
+async def test_retry_after_http_date(aioclient_mock):
+    """Retry-After may be an HTTP-date instead of a number of seconds."""
+    when = dt_util.utcnow().replace(microsecond=0) + timedelta(minutes=30)
+    aioclient_mock.get(
+        PREDICTIONS_URL,
+        status=503,
+        headers={"Retry-After": when.strftime("%a, %d %b %Y %H:%M:%S GMT")},
+    )
+    client = _client(aioclient_mock)
+    with pytest.raises(MetlinkRateLimited) as err:
+        await client.get_predictions("5000")
+    assert abs(err.value.retry_at - when) <= timedelta(seconds=2)
+
+
+async def test_retry_after_long_delay_kept(aioclient_mock):
+    """A server-requested delay longer than an hour is honoured (up to MAX_BACKOFF)."""
+    aioclient_mock.get(PREDICTIONS_URL, status=429, headers={"Retry-After": "7200"})
+    client = _client(aioclient_mock)
+    before = dt_util.utcnow()
+    with pytest.raises(MetlinkRateLimited) as err:
+        await client.get_predictions("5000")
+    assert err.value.retry_at - before >= timedelta(seconds=7199)
+
+
+async def test_shorter_retry_never_shortens_deadline(aioclient_mock):
+    """Two requests already in flight: the one answered last with a shorter Retry-After
+    must not shorten the deadline the other one set."""
+    client = _client(aioclient_mock)
+    far = dt_util.utcnow() + timedelta(minutes=30)
+    client.retry_at = far
+    client._check_backoff = lambda: None  # this request passed the check before `far` was set
+    aioclient_mock.get(PREDICTIONS_URL, status=429, headers={"Retry-After": "10"})
+    with pytest.raises(MetlinkRateLimited):
+        await client.get_predictions("5000")
+    assert client.retry_at == far
+
+
 async def test_server_error_default_backoff(aioclient_mock):
     """A 503 without Retry-After backs off for the default period."""
     aioclient_mock.get(PREDICTIONS_URL, status=503)

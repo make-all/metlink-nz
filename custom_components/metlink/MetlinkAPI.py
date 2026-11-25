@@ -15,6 +15,7 @@
 
 import asyncio
 from datetime import timedelta
+from email.utils import parsedate_to_datetime
 import logging
 
 from aiohttp import ClientResponseError
@@ -31,7 +32,8 @@ APIKEY_HEADER = "X-Api-Key"
 ALERTS_CACHE_TIME = timedelta(seconds=60)
 # Back-off used when the server asks us to slow down without saying how long.
 DEFAULT_BACKOFF = timedelta(minutes=5)
-MAX_BACKOFF = timedelta(hours=1)
+# Upper bound on any back-off, so a bogus Retry-After cannot stop the sensors for days.
+MAX_BACKOFF = timedelta(hours=24)
 # HTTP statuses that mean "try again later" rather than "your request is wrong".
 RETRY_STATUSES = (429, 500, 502, 503, 504)
 
@@ -47,12 +49,22 @@ class MetlinkRateLimited(Exception):
 
 
 def _retry_after(response) -> timedelta:
-    """Delay requested by a Retry-After header (seconds form), or the default."""
+    """Delay requested by a Retry-After header, in either of its forms (delay-seconds or an
+    HTTP-date), or the default when it is missing or unreadable."""
     value = response.headers.get("Retry-After") if response.headers else None
+    if value is None:
+        return DEFAULT_BACKOFF
+    value = value.strip()
     try:
         delay = timedelta(seconds=int(value))
-    except (TypeError, ValueError):
-        return DEFAULT_BACKOFF
+    except ValueError:
+        try:
+            when = parsedate_to_datetime(value)
+        except (TypeError, ValueError, IndexError):
+            return DEFAULT_BACKOFF
+        if when is None or when.tzinfo is None:
+            return DEFAULT_BACKOFF
+        delay = when - dt_util.utcnow()
     return min(max(delay, timedelta(seconds=1)), MAX_BACKOFF)
 
 
@@ -81,7 +93,10 @@ class Metlink(object):
         headers = {"Accept": CONTENT_TYPE_JSON, APIKEY_HEADER: self._key}
         async with self._session.get(url, params=params, headers=headers) as r:
             if r.status in RETRY_STATUSES:
-                self.retry_at = dt_util.utcnow() + _retry_after(r)
+                retry_at = dt_util.utcnow() + _retry_after(r)
+                # concurrent failures never shorten a deadline the server already gave us
+                if self.retry_at is None or retry_at > self.retry_at:
+                    self.retry_at = retry_at
                 _LOGGER.warning(
                     "Metlink API returned %s, pausing requests until %s",
                     r.status,
