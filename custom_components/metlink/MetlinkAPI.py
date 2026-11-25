@@ -33,6 +33,7 @@ ALERTS_CACHE_TIME = timedelta(seconds=60)
 # Back-off used when the server asks us to slow down without saying how long.
 DEFAULT_BACKOFF = timedelta(minutes=5)
 # Upper bound on any back-off, so a bogus Retry-After cannot stop the sensors for days.
+# Deliberate: a server deadline beyond this is shortened to it (documented in the README).
 MAX_BACKOFF = timedelta(hours=24)
 # HTTP statuses that mean "try again later" rather than "your request is wrong".
 RETRY_STATUSES = (429, 500, 502, 503, 504)
