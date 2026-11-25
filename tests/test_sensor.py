@@ -25,6 +25,9 @@ from custom_components.metlink.const import (
     CONF_ROUTE,
     CONF_STOP_ID,
 )
+from datetime import timedelta
+
+from custom_components.metlink.MetlinkAPI import MetlinkRateLimited
 from custom_components.metlink.sensor import MetlinkSensor, parse_route_filters, slug
 
 TEST_RESPONSE = [
@@ -265,3 +268,34 @@ def test_slug():
     """Test the slug function"""
     assert "abc_def" == slug("abc def")
     assert "_abc_def_ghi" == slug(" abc'def?ghi")
+
+
+async def test_rate_limited_sensor_backs_off():
+    """A rate-limited sensor makes no request until the back-off ends."""
+    retry_at = dt_util.utcnow() + timedelta(minutes=2)
+    metlink = MagicMock()
+    metlink.get_predictions = AsyncMock(side_effect=MetlinkRateLimited(retry_at))
+    metlink.get_service_alerts = AsyncMock(return_value={"entity": []})
+    sensor = MetlinkSensor(metlink, {CONF_STOP_ID: "WELL"})
+    await sensor.async_update()
+
+    assert sensor.available is False
+    assert sensor.retry_at == retry_at
+    # A forced update before retry_at must not reach the API, whatever the
+    # normal polling schedule says.
+    sensor.update_time = sensor.update_time - timedelta(days=1)
+    await sensor.async_update()
+    assert metlink.get_predictions.call_count == 1
+
+
+async def test_alerts_failure_keeps_departures(hass, aioclient_mock):
+    """Departures are still published when service alerts cannot be fetched."""
+    metlink = MagicMock()
+    metlink.get_predictions = AsyncMock(side_effect=TEST_RESPONSE)
+    metlink.get_service_alerts = AsyncMock(side_effect=ValueError("bad alerts"))
+    sensor = MetlinkSensor(metlink, {CONF_STOP_ID: "WELL", CONF_ROUTE: "KPL"})
+    await sensor.async_update()
+
+    assert sensor.available is True
+    assert sensor.attrs["departure"] == "2021-04-29T21:44:00+12:00"
+    assert sensor.attrs["alert_count"] == 0

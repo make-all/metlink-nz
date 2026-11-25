@@ -29,7 +29,7 @@ import homeassistant.util.dt as dt_util
 from isodate import parse_duration
 import voluptuous as vol
 
-from .MetlinkAPI import Metlink
+from .MetlinkAPI import Metlink, MetlinkRateLimited
 from .const import (
     ATTR_ACCESSIBLE,
     ATTR_AIMED,
@@ -189,6 +189,8 @@ class MetlinkSensor(Entity):
         self._available = True
         self._icon = DEFAULT_ICON
         self.update_time = dt_util.as_local(dt_util.utcnow())
+        # Set when the API asks us to back off; checked before any other rule.
+        self.retry_at = None
         _LOGGER.debug(f"Created Metlink sensor {self.uid}.")
 
     @property
@@ -226,13 +228,22 @@ class MetlinkSensor(Entity):
     async def async_update(self):
         # Only poll the API if it is time to do so
         now = dt_util.as_local(dt_util.utcnow())
+        if self.retry_at is not None and self.retry_at > now:
+            return
         if self.update_time > now:
             return
 
         num = 0
         try:
-            alerts = await self.metlink.get_service_alerts()
             data = await self.metlink.get_predictions(self.stop_id)
+            try:
+                alerts = await self.metlink.get_service_alerts()
+            except MetlinkRateLimited:
+                raise
+            except Exception:
+                # Alerts are supplementary: show the departures without them.
+                _LOGGER.debug("%s: service alerts unavailable", self._name)
+                alerts = {ATTR_ENTITY: []}
 
             for departure in data[ATTR_DEPARTURES]:
                 dest = departure[ATTR_DESTINATION].get(ATTR_NAME)
@@ -398,6 +409,11 @@ class MetlinkSensor(Entity):
 
                     for attr in to_remove:
                         self.attrs.pop(attr)
+
+        except MetlinkRateLimited as ex:
+            self.retry_at = ex.retry_at
+            self._available = False
+            _LOGGER.debug("%s: %s", self._name, ex)
 
         # set the sensor to unavailable on errors, but leave previous data in
         # attributes, so temporary network issues do not cause glitches.
