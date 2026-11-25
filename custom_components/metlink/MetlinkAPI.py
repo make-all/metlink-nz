@@ -18,7 +18,6 @@ from datetime import timedelta
 from email.utils import parsedate_to_datetime
 import logging
 
-from aiohttp import ClientResponseError
 from homeassistant.const import CONTENT_TYPE_JSON
 import homeassistant.util.dt as dt_util
 
