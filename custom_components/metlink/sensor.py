@@ -159,6 +159,21 @@ def metlink_unique_id(d: Dict):
         uid = uid + "_d" + slug(d["dest_filter"])
     return uid
 
+
+def stop_unique_id(stop: Dict) -> str:
+    """Return the unique_id of the sensor built from a configured stop.
+
+    Configured stops use the config keys (route, destination), while
+    metlink_unique_id reads the sensor's own attribute names.
+    """
+    return metlink_unique_id(
+        {
+            "stop_id": stop[CONF_STOP_ID],
+            "route_filter": stop.get(CONF_ROUTE),
+            "dest_filter": stop.get(CONF_DEST),
+        }
+    )
+
 def get_translation(translations: Dict) -> str:
     for translation in translations.get(ATTR_TRANSLATION, {}):
         if translation.get(ATTR_LANGUAGE) == LANG:
