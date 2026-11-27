@@ -1,7 +1,8 @@
 {
     "config": {
 	"error": {
-	    "auth": "The api key provided is not valid. Check you have subscribed to the Metlink Open Data API."
+	    "auth": "The api key provided is not valid. Check you have subscribed to the Metlink Open Data API.",
+	    "busy": "The Metlink API is busy or limiting requests. Try again in a few minutes."
 	},
 	"step": {
 	    "user": {

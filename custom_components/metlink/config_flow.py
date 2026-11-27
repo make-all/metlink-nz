@@ -29,7 +29,7 @@ from homeassistant.helpers.entity_registry import (
 )
 import voluptuous as vol
 
-from .MetlinkAPI import Metlink
+from .MetlinkAPI import Metlink, MetlinkRateLimited
 from .const import (
     CONF_DEST,
     CONF_NUM_DEPARTURES,
@@ -57,13 +57,17 @@ STOP_SCHEMA = vol.Schema(
 async def validate_auth(apikey: str, hass: core.HomeAssistant) -> None:
     """Validate a Metlink API key.
 
-    Raises a ValueError if the api key is invalid.
+    Raises a ValueError if the api key is invalid, or a ConnectionError if the
+    API is asking clients to back off.
     """
     session = async_get_clientsession(hass)
     metlink = Metlink(session, apikey)
 
     try:
         await metlink.get_predictions("9999")
+    except MetlinkRateLimited:
+        _LOGGER.warning("Metlink API is busy, try again later")
+        raise ConnectionError
     except ClientResponseError:
         _LOGGER.error("Metlink API Key rejected by server")
         raise ValueError
@@ -83,6 +87,8 @@ class MetlinkNZConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except ValueError:
                 _LOGGER.warning("API key validation failed, restarting config")
                 errors["base"] = "auth"
+            except ConnectionError:
+                errors["base"] = "busy"
 
             if not errors:
                 self.data = user_input

@@ -47,6 +47,14 @@ will be suffixed with a number for second and subsequent departures.
 
 Stop IDs sometimes behave differently, E.g. if your start stop ID is NAEN and the final destination is WELL, it doesn't work but it works with WELL1 as the final destination. To ensure that you have the correct final destination Stop ID, create a sensor without a final destination and get the final destination which shows up in the attributes.
 
+### Rate limits and errors
+
+All stops of one Metlink entry share one API client. Service alerts are fetched at most
+once a minute for all of them. When the API answers HTTP 429 or a 5xx error, every sensor of
+the entry pauses until the time given by the `Retry-After` header (seconds or an HTTP date),
+or for 5 minutes when there is none. Pauses are capped at 24 hours so a malformed header can
+not stop the sensors for days.
+
 # Acknowledgements
 
 Thanks to Greater Wellington Regional Council for making their data available

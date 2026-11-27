@@ -7,6 +7,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.metlink import config_flow
+from custom_components.metlink.MetlinkAPI import MetlinkRateLimited
 from custom_components.metlink.const import (
     ATTRIBUTION,
     CONF_DEST,
@@ -73,6 +74,29 @@ async def test_validate_auth_invalid(m_metlink, hass):
     m_metlink.return_value = m_instance
     with pytest.raises(ValueError):
         await config_flow.validate_auth("apikey", hass)
+
+
+@patch("custom_components.metlink.config_flow.Metlink")
+async def test_validate_auth_busy(m_metlink, hass):
+    """Test that ConnectionError is raised when the API asks us to back off."""
+    m_instance = AsyncMock()
+    m_instance.get_predictions = AsyncMock(side_effect=MetlinkRateLimited(None))
+    m_metlink.return_value = m_instance
+    with pytest.raises(ConnectionError):
+        await config_flow.validate_auth("apikey", hass)
+
+
+@patch("custom_components.metlink.config_flow.validate_auth")
+async def test_flow_user_init_busy(m_validate_auth, hass):
+    """Test the busy error is shown when the API is limiting requests."""
+    m_validate_auth.side_effect = ConnectionError
+    _result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        _result["flow_id"], user_input={CONF_API_KEY: "key"}
+    )
+    assert {"base": "busy"} == result["errors"]
 
 
 async def test_flow_user_init(hass):
