@@ -38,7 +38,7 @@ from .const import (
     CONF_STOPS,
     DOMAIN,
 )
-from .sensor import metlink_unique_id
+from .sensor import stop_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -176,7 +176,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 entry_stop = entry.unique_id
                 _LOGGER.info(f"Removing stop {entry_stop}")
                 updated_stops = [
-                    e for e in updated_stops if metlink_unique_id(e) != entry_stop
+                    e for e in updated_stops if stop_unique_id(e) != entry_stop
                 ]
 
             _LOGGER.debug(f"Stops after removals: {updated_stops}")

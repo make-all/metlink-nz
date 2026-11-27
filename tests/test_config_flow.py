@@ -313,6 +313,40 @@ async def test_options_flow_remove_stop(m_metlink, hass, expected_lingering_time
 
 
 @patch("custom_components.metlink.sensor.Metlink")
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_options_flow_remove_filtered_stop(m_metlink, hass, expected_lingering_timers):
+    """A stop with route and destination filters can be removed too."""
+    m_instance = AsyncMock()
+    m_instance.get_predictions = AsyncMock()
+    m_instance.get_service_alerts = AsyncMock(return_value={"entity": []})
+    m_metlink.return_value = m_instance
+
+    filtered = {CONF_STOP_ID: "1111", CONF_ROUTE: "23", CONF_DEST: "5016"}
+    other = {CONF_STOP_ID: "2222", CONF_ROUTE: "23"}
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="metlink_1111",
+        data={CONF_API_KEY: "dummy", CONF_STOPS: [filtered, other]},
+    )
+    config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    _result = await hass.config_entries.options.async_init(config_entry.entry_id)
+    kept = [e for e in _result["data_schema"].schema["stops"].options if "2222" in e]
+    with patch.object(hass.config_entries, "async_reload", AsyncMock(return_value=True)):
+        result = await hass.config_entries.options.async_configure(
+            _result["flow_id"], user_input={CONF_STOPS: kept}
+        )
+    await hass.async_block_till_done()
+    assert "create_entry" == result["type"]
+    assert [other] == result["data"][CONF_STOPS]
+    assert await hass.config_entries.async_unload(config_entry.entry_id)
+    await hass.async_block_till_done()
+    await hass.async_stop()
+
+
+@patch("custom_components.metlink.sensor.Metlink")
 @patch("custom_components.metlink.config_flow.Metlink")
 async def test_options_flow_add_stop(m_metlink, m_metlink_flow, hass):
     """Test adding a stop in config flow options."""
