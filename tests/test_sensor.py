@@ -31,6 +31,15 @@ from custom_components.metlink.const import (
 from custom_components.metlink.MetlinkAPI import MetlinkRateLimited
 from custom_components.metlink.sensor import MetlinkSensor, parse_route_filters, slug
 
+TEST_TIMESTAMP1 = (dt_util.utcnow() + timedelta(hours=2)).isoformat(timespec="seconds")
+TEST_TIMESTAMP2 = (dt_util.utcnow() + timedelta(hours=2, minutes=5)).isoformat(
+    timespec="seconds"
+)
+TEST_TIMESTAMP3 = (dt_util.utcnow() + timedelta(hours=2, minutes=30)).isoformat(
+    timespec="seconds"
+)
+TEST_TIMESTAMP4 = (dt_util.utcnow() + timedelta(hours=3)).isoformat(timespec="seconds")
+
 TEST_RESPONSE = [
     {
         "farezone": "1",
@@ -48,8 +57,8 @@ TEST_RESPONSE = [
                 "name": "WgtnStn",
                 "arrival": {"expected": None},
                 "departure": {
-                    "aimed": "2021-04-29T21:35:00+12:00",
-                    "expected": "2021-04-29T21:37:00+12:00",
+                    "aimed": TEST_TIMESTAMP1,
+                    "expected": TEST_TIMESTAMP1,
                 },
                 "status": "delay",
                 "monitored": False,
@@ -67,7 +76,7 @@ TEST_RESPONSE = [
                 "name": "WgtnStn",
                 "arrival": {"expected": None},
                 "departure": {
-                    "aimed": "2021-04-29T21:44:00+12:00",
+                    "aimed": TEST_TIMESTAMP2,
                     "expected": None,
                 },
                 "status": None,
@@ -86,7 +95,7 @@ TEST_RESPONSE = [
                 "name": "WgtnStn",
                 "arrival": {"expected": None},
                 "departure": {
-                    "aimed": "2021-04-29T21:55:00+12:00",
+                    "aimed": TEST_TIMESTAMP3,
                     "expected": None,
                 },
                 "status": None,
@@ -105,8 +114,8 @@ TEST_RESPONSE = [
                 "name": "WgtnStn",
                 "arrival": {"expected": None},
                 "departure": {
-                    "aimed": "2021-04-29T22:15:00+12:00",
-                    "expected": "2021-04-29T22:45:34+12:00",
+                    "aimed": TEST_TIMESTAMP4,
+                    "expected": TEST_TIMESTAMP4,
                 },
                 "status": "late",
                 "monitored": False,
@@ -132,7 +141,7 @@ async def test_async_update_success(hass, aioclient_mock):
     expected = {
         "attribution": ATTRIBUTION,
         "stop_id": "WELL",
-        "departure": "2021-04-29T21:55:00+12:00",
+        "departure": TEST_TIMESTAMP3,
         "description": "KPL Porirua",
         "service_id": "KPL",
         "stop_name": "WgtnStn",
@@ -198,7 +207,7 @@ async def test_async_update_multiple(hass, aioclient_mock):
     expected = {
         "attribution": ATTRIBUTION,
         "stop_id": "WELL",
-        "departure": "2021-04-29T21:44:00+12:00",
+        "departure": TEST_TIMESTAMP2,
         "description": "KPL WAIK-All stops",
         "service_id": "KPL",
         "stop_name": "WgtnStn",
@@ -210,7 +219,7 @@ async def test_async_update_multiple(hass, aioclient_mock):
         "monitored": False,
         "vehicle_id": None,
         "alert_count": 0,
-        "departure_2": "2021-04-29T21:55:00+12:00",
+        "departure_2": TEST_TIMESTAMP3,
         "description_2": "KPL Porirua",
         "service_id_2": "KPL",
         "status_2": "sched",
@@ -221,7 +230,7 @@ async def test_async_update_multiple(hass, aioclient_mock):
         "monitored_2": False,
         "vehicle_id_2": None,
         "alert_count_2": 0,
-        "departure_3": "2021-04-29T22:45:34+12:00",
+        "departure_3": TEST_TIMESTAMP4,
         "description_3": "KPL Porirua",
         "service_id_3": "KPL",
         "status_3": "late",
@@ -300,7 +309,7 @@ async def test_alerts_failure_keeps_departures(hass, aioclient_mock):
     await sensor.async_update()
 
     assert sensor.available is True
-    assert sensor.attrs["departure"] == "2021-04-29T21:44:00+12:00"
+    assert sensor.attrs["departure"] == TEST_TIMESTAMP2
     assert sensor.attrs["alert_count"] == 0
 
 
@@ -354,7 +363,7 @@ async def test_unused_slot_fully_cleared():
     sensor.update_time = sensor.update_time - timedelta(days=1)
     await sensor.async_update()
 
-    assert sensor.attrs["departure"] == "2021-04-29T21:44:00+12:00"
+    assert sensor.attrs["departure"] == TEST_TIMESTAMP2
     assert not [a for a in sensor.attrs if a.endswith("_2")]
 
 
@@ -395,5 +404,5 @@ async def test_partial_failure_does_not_hold_polling():
 
     await sensor.async_update()
     assert sensor.available is True
-    assert sensor.attrs["departure_2"] == "2021-04-29T21:55:00+12:00"
+    assert sensor.attrs["departure_2"] == TEST_TIMESTAMP3
     assert sensor.attrs["last_fetched"]
