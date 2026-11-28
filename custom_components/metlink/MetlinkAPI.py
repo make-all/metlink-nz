@@ -14,12 +14,12 @@
 # limitations under the License.
 
 import asyncio
+import logging
 from datetime import timedelta
 from email.utils import parsedate_to_datetime
-import logging
 
-from homeassistant.const import CONTENT_TYPE_JSON
 import homeassistant.util.dt as dt_util
+from homeassistant.const import CONTENT_TYPE_JSON
 
 BASE_URL = "https://api.opendata.metlink.org.nz/v1"
 PREDICTIONS_URL = BASE_URL + "/stop-predictions"
@@ -119,10 +119,7 @@ class Metlink(object):
         """
         async with self._alerts_lock:
             now = dt_util.utcnow()
-            if (
-                self._alerts is not None
-                and now - self._alerts_time < ALERTS_CACHE_TIME
-            ):
+            if self._alerts is not None and now - self._alerts_time < ALERTS_CACHE_TIME:
                 return self._alerts
             _LOGGER.debug("Metlink request for service alerts")
             try:

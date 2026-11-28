@@ -14,7 +14,7 @@
 
 DOMAIN = "metlink"
 ATTRIBUTION = "Data provided by Greater Wellington Regional Council"
-LANG = "en" # API only provides English translations
+LANG = "en"  # API only provides English translations
 
 CONF_STOPS = "stops"
 CONF_STOP_ID = "stop_id"

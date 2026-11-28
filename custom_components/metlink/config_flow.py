@@ -13,23 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from copy import deepcopy
 import logging
+from copy import deepcopy
 from typing import Any, Dict, Optional
 
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from aiohttp import ClientResponseError
 from homeassistant import config_entries, core
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_registry import (
     async_entries_for_config_entry,
     async_get,
 )
-import voluptuous as vol
 
-from .MetlinkAPI import Metlink, MetlinkRateLimited
 from .const import (
     CONF_DEST,
     CONF_NUM_DEPARTURES,
@@ -38,6 +37,7 @@ from .const import (
     CONF_STOPS,
     DOMAIN,
 )
+from .MetlinkAPI import Metlink, MetlinkRateLimited
 from .sensor import stop_unique_id
 
 _LOGGER = logging.getLogger(__name__)
@@ -204,9 +204,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_STOP_ID): vol.All(
                     cv.string, vol.Length(min=3, max=4)
                 ),
-                vol.Optional(CONF_ROUTE, default=""): vol.All(
-                    cv.string
-                ),
+                vol.Optional(CONF_ROUTE, default=""): vol.All(cv.string),
                 vol.Optional(CONF_DEST, default=""): cv.string,
                 vol.Optional(CONF_NUM_DEPARTURES, default=1): cv.positive_int,
             }

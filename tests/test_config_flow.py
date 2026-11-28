@@ -1,15 +1,14 @@
 """Tests for the config_flow."""
-from unittest.mock import ANY, AsyncMock, patch
 
+from unittest.mock import AsyncMock, patch
+
+import pytest
 from aiohttp import ClientResponseError
 from homeassistant.const import CONF_API_KEY
-import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.metlink import config_flow
-from custom_components.metlink.MetlinkAPI import MetlinkRateLimited
 from custom_components.metlink.const import (
-    ATTRIBUTION,
     CONF_DEST,
     CONF_NUM_DEPARTURES,
     CONF_ROUTE,
@@ -17,6 +16,7 @@ from custom_components.metlink.const import (
     CONF_STOPS,
     DOMAIN,
 )
+from custom_components.metlink.MetlinkAPI import MetlinkRateLimited
 
 
 @pytest.fixture(autouse=True)
@@ -299,7 +299,9 @@ async def test_options_flow_remove_stop(m_metlink, hass, expected_lingering_time
     # show initial form
     _result = await hass.config_entries.options.async_init(config_entry.entry_id)
     # submit form with options
-    with patch.object(hass.config_entries, "async_reload", AsyncMock(return_value=True)):
+    with patch.object(
+        hass.config_entries, "async_reload", AsyncMock(return_value=True)
+    ):
         result = await hass.config_entries.options.async_configure(
             _result["flow_id"], user_input={CONF_STOPS: []}
         )
@@ -314,7 +316,9 @@ async def test_options_flow_remove_stop(m_metlink, hass, expected_lingering_time
 
 @patch("custom_components.metlink.sensor.Metlink")
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_options_flow_remove_filtered_stop(m_metlink, hass, expected_lingering_timers):
+async def test_options_flow_remove_filtered_stop(
+    m_metlink, hass, expected_lingering_timers
+):
     """A stop with route and destination filters can be removed too."""
     m_instance = AsyncMock()
     m_instance.get_predictions = AsyncMock()
@@ -334,7 +338,9 @@ async def test_options_flow_remove_filtered_stop(m_metlink, hass, expected_linge
 
     _result = await hass.config_entries.options.async_init(config_entry.entry_id)
     kept = [e for e in _result["data_schema"].schema["stops"].options if "2222" in e]
-    with patch.object(hass.config_entries, "async_reload", AsyncMock(return_value=True)):
+    with patch.object(
+        hass.config_entries, "async_reload", AsyncMock(return_value=True)
+    ):
         result = await hass.config_entries.options.async_configure(
             _result["flow_id"], user_input={CONF_STOPS: kept}
         )
@@ -368,7 +374,9 @@ async def test_options_flow_add_stop(m_metlink, m_metlink_flow, hass):
     # show initial form
     _result = await hass.config_entries.options.async_init(config_entry.entry_id)
     # submit form with new stop
-    with patch.object(hass.config_entries, "async_reload", AsyncMock(return_value=True)):
+    with patch.object(
+        hass.config_entries, "async_reload", AsyncMock(return_value=True)
+    ):
         result = await hass.config_entries.options.async_configure(
             _result["flow_id"],
             user_input={CONF_STOPS: ["sensor.metlink_1111"], "stop_id": "WELL"},

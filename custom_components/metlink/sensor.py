@@ -13,26 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import timedelta
 import logging
 import re
+from datetime import timedelta
 from typing import Any, Callable, Dict, Optional
 
+import homeassistant.helpers.config_validation as cv
+import homeassistant.util.dt as dt_util
+import voluptuous as vol
 from homeassistant import config_entries, core
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass
 from homeassistant.const import ATTR_ATTRIBUTION, CONF_API_KEY
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-import homeassistant.util.dt as dt_util
 from isodate import parse_duration
-import voluptuous as vol
 
-from .MetlinkAPI import Metlink, MetlinkRateLimited
 from .const import (
     ATTR_ACCESSIBLE,
     ATTR_AIMED,
+    ATTR_ALERT,
     ATTR_ALERT_CAUSE,
     ATTR_ALERT_COUNT,
     ATTR_ALERT_DESCRIPTION,
@@ -40,34 +40,33 @@ from .const import (
     ATTR_ALERT_HEADER,
     ATTR_ALERT_SEVERITY_LEVEL,
     ATTR_ALERT_URL,
-    ATTR_ALERT,
     ATTR_CAUSE,
     ATTR_DELAY,
     ATTR_DEPARTURE,
     ATTR_DEPARTURES,
-    ATTR_DESCRIPTION_TEXT,
     ATTR_DESCRIPTION,
-    ATTR_DESTINATION_ID,
+    ATTR_DESCRIPTION_TEXT,
     ATTR_DESTINATION,
+    ATTR_DESTINATION_ID,
     ATTR_EFFECT,
     ATTR_ENTITY,
     ATTR_EXPECTED,
     ATTR_HEADER_TEXT,
     ATTR_INFORMED_ENTITY,
-    ATTR_LAST_FETCHED,
     ATTR_LANGUAGE,
+    ATTR_LAST_FETCHED,
     ATTR_MONITORED,
     ATTR_NAME,
     ATTR_OPERATOR,
     ATTR_SERVICE,
     ATTR_SEVERITY_LEVEL,
     ATTR_STATUS,
-    ATTR_STOP_NAME,
     ATTR_STOP,
+    ATTR_STOP_NAME,
     ATTR_TEXT,
     ATTR_TRANSLATION,
-    ATTR_TRIP_ID,
     ATTR_TRIP,
+    ATTR_TRIP_ID,
     ATTR_URL,
     ATTR_VEHICLE,
     ATTRIBUTION,
@@ -79,6 +78,7 @@ from .const import (
     DOMAIN,
     LANG,
 )
+from .MetlinkAPI import Metlink, MetlinkRateLimited
 
 _LOGGER = logging.getLogger(__name__)
 VERBOSE = 1
@@ -200,12 +200,14 @@ def stop_unique_id(stop: Dict) -> str:
         }
     )
 
+
 def get_translation(translations: Dict) -> str:
     for translation in translations.get(ATTR_TRANSLATION, {}):
         if translation.get(ATTR_LANGUAGE) == LANG:
             return translation.get(ATTR_TEXT, "")
 
     return ""
+
 
 class MetlinkSensor(Entity):
     """Representation of a Metlink Stop sensor."""
@@ -320,7 +322,11 @@ class MetlinkSensor(Entity):
                     for entity in alerts[ATTR_ENTITY]:
                         alert = entity[ATTR_ALERT]
                         informed_entities = alert[ATTR_INFORMED_ENTITY]
-                        if any(informed_entity.get(ATTR_TRIP, {}).get(ATTR_TRIP_ID) == trip_id for informed_entity in informed_entities):
+                        if any(
+                            informed_entity.get(ATTR_TRIP, {}).get(ATTR_TRIP_ID)
+                            == trip_id
+                            for informed_entity in informed_entities
+                        ):
                             trip_alerts.append(alert)
 
                 name = f"{departure[ATTR_SERVICE]} {dest}"
@@ -395,12 +401,24 @@ class MetlinkSensor(Entity):
                 for alert in trip_alerts:
                     alert_suffix = f"_{num_alert}"
 
-                    self.attrs[ATTR_ALERT_HEADER + suffix + alert_suffix] = get_translation(alert.get(ATTR_HEADER_TEXT, {}))
-                    self.attrs[ATTR_ALERT_DESCRIPTION + suffix + alert_suffix] = get_translation(alert.get(ATTR_DESCRIPTION_TEXT, {}))
-                    self.attrs[ATTR_ALERT_URL + suffix + alert_suffix] = get_translation(alert.get(ATTR_URL, {}))
-                    self.attrs[ATTR_ALERT_CAUSE + suffix + alert_suffix] = alert.get(ATTR_CAUSE, "")
-                    self.attrs[ATTR_ALERT_EFFECT + suffix + alert_suffix] = alert.get(ATTR_EFFECT, "")
-                    self.attrs[ATTR_ALERT_SEVERITY_LEVEL + suffix + alert_suffix] = alert.get(ATTR_SEVERITY_LEVEL, "")
+                    self.attrs[ATTR_ALERT_HEADER + suffix + alert_suffix] = (
+                        get_translation(alert.get(ATTR_HEADER_TEXT, {}))
+                    )
+                    self.attrs[ATTR_ALERT_DESCRIPTION + suffix + alert_suffix] = (
+                        get_translation(alert.get(ATTR_DESCRIPTION_TEXT, {}))
+                    )
+                    self.attrs[ATTR_ALERT_URL + suffix + alert_suffix] = (
+                        get_translation(alert.get(ATTR_URL, {}))
+                    )
+                    self.attrs[ATTR_ALERT_CAUSE + suffix + alert_suffix] = alert.get(
+                        ATTR_CAUSE, ""
+                    )
+                    self.attrs[ATTR_ALERT_EFFECT + suffix + alert_suffix] = alert.get(
+                        ATTR_EFFECT, ""
+                    )
+                    self.attrs[ATTR_ALERT_SEVERITY_LEVEL + suffix + alert_suffix] = (
+                        alert.get(ATTR_SEVERITY_LEVEL, "")
+                    )
 
                     num_alert += 1
 
@@ -421,7 +439,7 @@ class MetlinkSensor(Entity):
                                 if int(attr.removeprefix(prefix)) >= len(trip_alerts):
                                     # we have an attribute outside of the range of the current alerts
                                     to_remove.append(attr)
-                            except ValueError as ex:
+                            except ValueError:
                                 pass
 
                 for attr in to_remove:
@@ -437,7 +455,7 @@ class MetlinkSensor(Entity):
                     _LOGGER.info(
                         f"{self._name}: Clearing departure info for {i} due to insufficient departure info"
                     )
-                    self._clear_slot(f"_{i+1}")
+                    self._clear_slot(f"_{i + 1}")
 
             # Only hold back further polls once the whole response has been
             # parsed: a failure part-way through must be retried on the next

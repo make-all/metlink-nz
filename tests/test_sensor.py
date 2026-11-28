@@ -17,8 +17,8 @@ from copy import deepcopy
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock
 
-from aiohttp import ClientResponseError
 import homeassistant.util.dt as dt_util
+from aiohttp import ClientResponseError
 
 from custom_components.metlink.const import (
     ATTRIBUTION,
@@ -27,7 +27,6 @@ from custom_components.metlink.const import (
     CONF_ROUTE,
     CONF_STOP_ID,
 )
-
 from custom_components.metlink.MetlinkAPI import MetlinkRateLimited
 from custom_components.metlink.sensor import MetlinkSensor, parse_route_filters, slug
 

@@ -1,9 +1,9 @@
 """Tests for the Metlink API client."""
+
 import asyncio
 from datetime import timedelta
 from unittest.mock import patch
 
-from aiohttp import ClientSession
 import homeassistant.util.dt as dt_util
 import pytest
 
@@ -111,7 +111,9 @@ async def test_shorter_retry_never_shortens_deadline(aioclient_mock):
     client = _client(aioclient_mock)
     far = dt_util.utcnow() + timedelta(minutes=30)
     client.retry_at = far
-    client._check_backoff = lambda: None  # this request passed the check before `far` was set
+    client._check_backoff = lambda: (
+        None
+    )  # this request passed the check before `far` was set
     aioclient_mock.get(PREDICTIONS_URL, status=429, headers={"Retry-After": "10"})
     with pytest.raises(MetlinkRateLimited):
         await client.get_predictions("5000")
