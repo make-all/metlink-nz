@@ -45,6 +45,15 @@ sense when there is more than one result being returned.
 If more than 1 result is requested in `num_departures`, the attributes
 will be suffixed with a number for second and subsequent departures.
 
+Each departure also carries a `trip_id` attribute (the GTFS trip identifier)
+when Metlink supplies one. A trip id is the same at every stop the service
+calls at, so it can be used to follow one bus or train along its route
+across several stop sensors.
+
+The `last_fetched` attribute holds the time of the last successful update
+from the Metlink API. Polling slows down when the next departure is far
+away, so use it to judge how fresh the predictions are.
+
 Stop IDs sometimes behave differently, E.g. if your start stop ID is NAEN and the final destination is WELL, it doesn't work but it works with WELL1 as the final destination. To ensure that you have the correct final destination Stop ID, create a sensor without a final destination and get the final destination which shows up in the attributes.
 
 ### Rate limits and errors

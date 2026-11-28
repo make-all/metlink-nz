@@ -54,6 +54,7 @@ from .const import (
     ATTR_EXPECTED,
     ATTR_HEADER_TEXT,
     ATTR_INFORMED_ENTITY,
+    ATTR_LAST_FETCHED,
     ATTR_LANGUAGE,
     ATTR_MONITORED,
     ATTR_NAME,
@@ -105,6 +106,31 @@ OPERATOR_ICONS = {"RAIL": "mdi:train", "EBYW": "mdi:ferry", "WCCL": "mdi:gondola
 # By default, status is returned as null.  Follow the behaviour of signs and
 # call this "sched", meaning scheduled with no realtime status
 DEFAULT_STATUS = "sched"
+
+# Attributes that are published once per departure slot ("" for the first
+# departure, "_2", "_3", ... for the following ones).
+SLOT_ATTRS = (
+    ATTR_DESCRIPTION,
+    ATTR_DEPARTURE,
+    ATTR_SERVICE,
+    ATTR_STATUS,
+    ATTR_DESTINATION,
+    ATTR_DESTINATION_ID,
+    ATTR_ACCESSIBLE,
+    ATTR_DELAY,
+    ATTR_MONITORED,
+    ATTR_VEHICLE,
+    ATTR_TRIP_ID,
+    ATTR_ALERT_COUNT,
+)
+ALERT_ATTRS = (
+    ATTR_ALERT_HEADER,
+    ATTR_ALERT_DESCRIPTION,
+    ATTR_ALERT_URL,
+    ATTR_ALERT_CAUSE,
+    ATTR_ALERT_EFFECT,
+    ATTR_ALERT_SEVERITY_LEVEL,
+)
 
 
 async def async_setup_entry(
@@ -240,6 +266,14 @@ class MetlinkSensor(Entity):
     def extra_state_attributes(self) -> Dict[str, Any]:
         return self.attrs
 
+    def _clear_slot(self, suffix: str) -> None:
+        """Remove every attribute belonging to one departure slot."""
+        for attr in SLOT_ATTRS:
+            self.attrs.pop(attr + suffix, None)
+        prefixes = tuple(f"{alert_prefix}{suffix}_" for alert_prefix in ALERT_ATTRS)
+        for attr in [a for a in self.attrs if a.startswith(prefixes)]:
+            self.attrs.pop(attr)
+
     async def async_update(self):
         # Only poll the API if it is time to do so
         now = dt_util.as_local(dt_util.utcnow())
@@ -249,6 +283,7 @@ class MetlinkSensor(Entity):
             return
 
         num = 0
+        next_update = now
         try:
             data = await self.metlink.get_predictions(self.stop_id)
             try:
@@ -306,19 +341,19 @@ class MetlinkSensor(Entity):
                     when = (next_departure - now).total_seconds()
                     # Within 3 minutes, poll next call as well
                     if when < 180:
-                        self.update_time = now
+                        next_update = now
                     # Within 15 minutes, poll every two minutes
                     elif when < 900:
-                        self.update_time = now + timedelta(minutes=2)
+                        next_update = now + timedelta(minutes=2)
                     # Within an hour, poll every 10 minutes
                     elif when < 3600:
-                        self.update_time = now + timedelta(minutes=10)
+                        next_update = now + timedelta(minutes=10)
                     # More than an hour away, don't poll until 1 hour before
                     else:
-                        self.update_time = next_departure - timedelta(hours=1)
+                        next_update = next_departure - timedelta(hours=1)
 
                     _LOGGER.debug(
-                        f"Next departure at {next_departure}, blocking updates until {self.update_time}"
+                        f"Next departure at {next_departure}, blocking updates until {next_update}"
                     )
                 else:
                     suffix = f"_{num}"
@@ -347,6 +382,12 @@ class MetlinkSensor(Entity):
                 )
                 self.attrs[ATTR_MONITORED + suffix] = departure[ATTR_MONITORED]
                 self.attrs[ATTR_VEHICLE + suffix] = departure[ATTR_VEHICLE]
+                # The GTFS trip identifies the same service at every stop it
+                # serves, so automations can follow one bus along its route.
+                if departure.get(ATTR_TRIP_ID):
+                    self.attrs[ATTR_TRIP_ID + suffix] = departure[ATTR_TRIP_ID]
+                else:
+                    self.attrs.pop(ATTR_TRIP_ID + suffix, None)
 
                 # Trip alerts
                 self.attrs[ATTR_ALERT_COUNT + suffix] = len(trip_alerts)
@@ -386,44 +427,25 @@ class MetlinkSensor(Entity):
                 for attr in to_remove:
                     self.attrs.pop(attr)
 
-            self._available = True
             # Clear out the unused slots
             for i in range(num, self.num_departures):
                 if i == 0:
                     _LOGGER.warning(f"{self._name}: Clearing due to no departure info")
-                    suffix = ""
                     self._state = None
+                    self._clear_slot("")
                 else:
                     _LOGGER.info(
                         f"{self._name}: Clearing departure info for {i} due to insufficient departure info"
                     )
-                    suffix = f"_{i+1}"
-                    self.attrs.pop(ATTR_DESCRIPTION + suffix, None)
-                    self.attrs.pop(ATTR_DEPARTURE + suffix, None)
-                    self.attrs.pop(ATTR_DEPARTURE + suffix, None)
-                    self.attrs.pop(ATTR_SERVICE + suffix, None)
-                    self.attrs.pop(ATTR_STATUS + suffix, None)
-                    self.attrs.pop(ATTR_DESTINATION + suffix, None)
-                    self.attrs.pop(ATTR_DESTINATION_ID + suffix, None)
-                    self.attrs.pop(ATTR_ACCESSIBLE + suffix, None)
-                    self.attrs.pop(ATTR_DELAY + suffix, None)
-                    self.attrs.pop(ATTR_ALERT_COUNT + suffix, None)
-                    to_remove = []
-                    for alert_prefix in [
-                        ATTR_ALERT_HEADER,
-                        ATTR_ALERT_DESCRIPTION,
-                        ATTR_ALERT_URL,
-                        ATTR_ALERT_CAUSE,
-                        ATTR_ALERT_EFFECT,
-                        ATTR_ALERT_SEVERITY_LEVEL,
-                    ]:
-                        prefix = f"{alert_prefix}{suffix}"
-                        for attr in self.attrs:
-                            if attr.startswith(prefix):
-                                to_remove.append(attr)
+                    self._clear_slot(f"_{i+1}")
 
-                    for attr in to_remove:
-                        self.attrs.pop(attr)
+            # Only hold back further polls once the whole response has been
+            # parsed: a failure part-way through must be retried on the next
+            # scan rather than leaving partial data in place until the hold
+            # expires.
+            self.update_time = next_update
+            self.attrs[ATTR_LAST_FETCHED] = now.isoformat()
+            self._available = True
 
         except MetlinkRateLimited as ex:
             self.retry_at = ex.retry_at
