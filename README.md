@@ -9,9 +9,7 @@ then be displayed on your Home Assistant dashboard or used in automations.
 
 ## Installation
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
-
-The integration can be installed using HACS.
+The integration can be installed using Home Assistant Marketplace.
 If you prefer to instal manually, copy `custom_components/metlink` to your
 installation's `config/custom_components` directory.
 
@@ -73,3 +71,4 @@ this Home Assistant integration.
 - [messum](https://github.com/messum) for identifying that train stations are not always 4 characters, and fixing that, and contributing documentation to advise on the new train station naming complexity where major stations have numbered source/destination ids.
 - [Me-sudoer](https://github.com/Me-sudoer) for finding an issue with the HA iOS app's different handling of timestamps than web and Android.
 - [meringu](https://github.com/meringu) for contributing service alert support.
+- [droopanu](https://github.com/droopanu) for contributing fixes for rate limiting backoff, clearing stale data, and properly removing stops with filters.

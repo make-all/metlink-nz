@@ -7,6 +7,6 @@
     "documentation": "https://github.com/make-all/metlink-nz/wiki",
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/make-all/metlink-nz/issues",
-    "requirements": ["isodate~=0.6.1"],
-    "version": "1.1.1"
+    "requirements": ["isodate~=0.7.2"],
+    "version": "1.2.0"
 }
